@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
             mascotCheer();
         });
         // greet on arrival
-        setTimeout(() => mascotSay("Hi! Claude here 👋", 2600), 700);
+        setTimeout(() => mascotSay("Hi! I'm Cappy 👋", 2600), 700);
     }
 });
 
