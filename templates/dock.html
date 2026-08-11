@@ -1,0 +1,22 @@
+<div class="dock" id="dock">
+    <a href="{{ url_for('index') }}" class="dock-item {{ 'active' if request.endpoint in ['index', 'words'] }}">
+        <span class="dock-icon">📚</span>
+        <span class="dock-tooltip">Groups</span>
+        <span class="dock-dot"></span>
+    </a>
+    <a href="{{ url_for('add') }}" class="dock-item {{ 'active' if request.endpoint in ['add', 'edit'] }}">
+        <span class="dock-icon">➕</span>
+        <span class="dock-tooltip">Add Word</span>
+        <span class="dock-dot"></span>
+    </a>
+    <a href="{{ url_for('learn') }}" class="dock-item {{ 'active' if request.endpoint == 'learn' }}">
+        <span class="dock-icon">🎴</span>
+        <span class="dock-tooltip">Learn</span>
+        <span class="dock-dot"></span>
+    </a>
+    <span class="dock-sep"></span>
+    <button type="button" class="dock-item" id="theme-toggle">
+        <span class="dock-icon" id="theme-icon">🌙</span>
+        <span class="dock-tooltip" id="theme-tooltip">Light mode</span>
+    </button>
+</div>

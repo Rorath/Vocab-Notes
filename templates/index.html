@@ -5,15 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vocab Notes</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>if ((localStorage.getItem('theme') || 'dark') === 'light') document.documentElement.classList.add('light');</script>
 </head>
 <body>
     <nav>
         <h1>Vocab Notes</h1>
-        <div class="nav-links">
-            <a href="{{ url_for('index') }}">Groups</a>
-            <a href="{{ url_for('add') }}">+ Add Word</a>
-            <a href="{{ url_for('learn') }}">Learn</a>
-        </div>
     </nav>
 
     <main>
@@ -83,6 +79,7 @@
         {% endif %}
     </main>
 
+    {% include 'dock.html' %}
     {% include 'mascot.html' %}
     <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>

@@ -36,6 +36,67 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+// ---------- Dock (macOS-style magnification + bounce) ----------
+document.addEventListener("DOMContentLoaded", () => {
+    const dock = document.getElementById("dock");
+    if (!dock) return;
+    const items = [...dock.querySelectorAll(".dock-item")];
+    const RANGE = 110;   // px of influence on each side of the cursor
+    const MAX = 1.55;    // peak magnification
+
+    dock.addEventListener("mousemove", (e) => {
+        items.forEach((item) => {
+            const r = item.getBoundingClientRect();
+            const center = r.left + r.width / 2;
+            const dist = Math.abs(e.clientX - center);
+            let scale = 1;
+            if (dist < RANGE) scale = 1 + (MAX - 1) * (1 - dist / RANGE);
+            item.style.setProperty("--scale", scale.toFixed(3));
+        });
+    });
+    dock.addEventListener("mouseleave", () => {
+        items.forEach((item) => item.style.setProperty("--scale", 1));
+    });
+
+    // Bounce on click; delay navigation so the animation is visible
+    items.forEach((item) => {
+        item.addEventListener("click", (e) => {
+            const icon = item.querySelector(".dock-icon");
+            if (icon) {
+                icon.classList.remove("bounce");
+                void icon.offsetWidth; // restart animation
+                icon.classList.add("bounce");
+            }
+            const href = item.getAttribute("href");
+            if (href) {
+                e.preventDefault();
+                setTimeout(() => { window.location.href = href; }, 470);
+            }
+        });
+    });
+});
+
+// ---------- Theme toggle (dark neon <-> light) ----------
+document.addEventListener("DOMContentLoaded", () => {
+    const btn = document.getElementById("theme-toggle");
+    if (!btn) return;
+
+    function refresh() {
+        const isLight = document.documentElement.classList.contains("light");
+        const icon = document.getElementById("theme-icon");
+        const tip = document.getElementById("theme-tooltip");
+        if (icon) icon.textContent = isLight ? "☀️" : "🌙";
+        if (tip) tip.textContent = isLight ? "Dark mode" : "Light mode";
+    }
+    refresh();
+
+    btn.addEventListener("click", () => {
+        const isLight = document.documentElement.classList.toggle("light");
+        localStorage.setItem("theme", isLight ? "light" : "dark");
+        refresh();
+    });
+});
+
 // ---------- Confetti ----------
 function launchConfetti() {
     const colors = ["#a855f7", "#22d3ee", "#ff9d6b", "#cc785c", "#f472b6", "#34d399"];

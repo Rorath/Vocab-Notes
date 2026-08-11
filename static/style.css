@@ -74,7 +74,7 @@ nav h1 {
 }
 
 /* Layout */
-main { max-width: 920px; margin: 0 auto; padding: 36px 32px 80px; }
+main { max-width: 920px; margin: 0 auto; padding: 36px 32px 140px; }
 .word-count { color: var(--muted); font-size: 14px; margin-bottom: 22px; }
 
 /* Word grid */
@@ -429,9 +429,126 @@ input:focus, textarea:focus {
     to { transform: translateY(105vh) rotate(720deg); opacity: 0.9; }
 }
 
+/* ---------- Dock (macOS-style) ---------- */
+.dock {
+    position: fixed;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(20, 20, 34, 0.55);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 24px;
+    box-shadow: 0 14px 44px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    z-index: 60;
+}
+.dock-item {
+    --scale: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-decoration: none;
+    border-radius: 15px;
+    transform-origin: bottom center;
+    transform: scale(var(--scale)) translateY(calc((var(--scale) - 1) * -9px));
+    transition: transform 0.14s cubic-bezier(0.2, 0.85, 0.3, 1);
+}
+.dock-icon {
+    font-size: 30px;
+    line-height: 1;
+    display: block;
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
+}
+.dock-tooltip {
+    position: absolute;
+    bottom: calc(100% + 14px);
+    left: 50%;
+    transform: translateX(-50%) translateY(6px) scale(0.9);
+    background: rgba(20, 20, 34, 0.96);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 11px;
+    border-radius: 9px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.dock-item:hover .dock-tooltip { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+.dock-dot {
+    position: absolute;
+    bottom: 1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--purple);
+    box-shadow: var(--glow-purple);
+    opacity: 0;
+}
+.dock-item.active .dock-dot { opacity: 1; }
+.dock-sep { width: 1px; height: 34px; background: rgba(255, 255, 255, 0.16); margin: 0 5px; align-self: center; }
+
+@keyframes dock-bounce {
+    0% { transform: translateY(0); }
+    30% { transform: translateY(-24px); }
+    50% { transform: translateY(0); }
+    72% { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
+}
+.dock-icon.bounce { animation: dock-bounce 0.62s ease; }
+
+/* ---------- Light theme ---------- */
+html.light {
+    --bg: #eef0f7;
+    --bg2: #ffffff;
+    --card: rgba(255, 255, 255, 0.75);
+    --card-solid: #ffffff;
+    --ink: #2a2350;
+    --text: #23263a;
+    --muted: #6b7186;
+    --line: rgba(20, 20, 50, 0.10);
+    --glow-purple: 0 0 20px rgba(168, 85, 247, 0.22);
+    --glow-cyan: 0 0 20px rgba(34, 211, 238, 0.20);
+}
+html.light body {
+    background:
+        radial-gradient(circle at 15% 0%, rgba(168, 85, 247, 0.12), transparent 40%),
+        radial-gradient(circle at 85% 20%, rgba(34, 211, 238, 0.10), transparent 42%),
+        radial-gradient(circle at 50% 100%, rgba(255, 157, 107, 0.09), transparent 45%),
+        var(--bg);
+}
+html.light nav { background: rgba(255, 255, 255, 0.72); }
+html.light .word-header h2 { background: none; -webkit-text-fill-color: var(--text); color: var(--text); }
+html.light input, html.light textarea { background: rgba(20, 20, 50, 0.03); }
+html.light .toolbar select { background-color: rgba(20, 20, 50, 0.03); }
+html.light .btn-secondary { background: rgba(20, 20, 50, 0.05); }
+html.light .dock {
+    background: rgba(255, 255, 255, 0.62);
+    border-color: rgba(20, 20, 50, 0.10);
+    box-shadow: 0 14px 44px rgba(30, 40, 90, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+html.light .dock-tooltip { background: rgba(255, 255, 255, 0.98); color: var(--text); border-color: rgba(20, 20, 50, 0.1); }
+html.light .dock-sep { background: rgba(20, 20, 50, 0.12); }
+
 @media (max-width: 600px) {
     nav { flex-direction: column; gap: 12px; padding: 16px; }
-    main { padding: 22px; }
+    main { padding: 22px 22px 130px; }
     .word-grid { grid-template-columns: 1fr; }
-    .mascot { width: 70px; height: 70px; bottom: 16px; right: 16px; }
+    .mascot { width: 64px; height: 64px; bottom: 96px; right: 16px; }
 }
