@@ -21,7 +21,7 @@
             <p class="word-count">{{ words|length }} word{% if words|length != 1 %}s{% endif %} in your vault</p>
             <div class="word-grid">
                 {% for w in words %}
-                <div class="word-card">
+                <div class="word-card" style="animation-delay: {{ loop.index0 * 0.06 }}s">
                     <div class="word-header">
                         <h2>{{ w.word }}</h2>
                         <div class="actions">
@@ -58,6 +58,7 @@
         {% endif %}
     </main>
 
+    {% include 'mascot.html' %}
     <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 </html>
