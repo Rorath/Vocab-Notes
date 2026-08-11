@@ -406,19 +406,21 @@ html.light .list-word { -webkit-text-fill-color: transparent; }
 /* ---------- Mascot (flying capybara) ---------- */
 .mascot {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 108px;
-    height: 101px;
+    left: 0;
+    top: 0;
+    width: 70px;
+    height: 66px;
     z-index: 50;
     cursor: pointer;
-    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.4));
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35));
+    will-change: left, top;
 }
 .capy-wrap {
+    --dir: 1;
     position: relative;
     width: 100%;
     height: 100%;
-    animation: bob 2.4s ease-in-out infinite;
+    animation: bob 1.4s ease-in-out infinite;
 }
 .capy-wrap img {
     position: absolute;
@@ -431,18 +433,19 @@ html.light .list-word { -webkit-text-fill-color: transparent; }
     pointer-events: none;
 }
 /* near wing: bigger, leads the motion, pivots near the shoulder */
-.capy-wing-near { transform-origin: 54% 55%; animation: flap-near 0.7s ease-in-out infinite; }
+.capy-wing-near { transform-origin: 54% 55%; animation: flap-near 0.32s ease-in-out infinite; }
 /* far wing: trails behind with a slight delay and smaller swing */
-.capy-wing-far { transform-origin: 62% 78%; animation: flap-far 0.7s ease-in-out infinite; animation-delay: 0.09s; }
-@keyframes flap-near { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-24deg); } }
-@keyframes flap-far { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-14deg); } }
+.capy-wing-far { transform-origin: 62% 78%; animation: flap-far 0.32s ease-in-out infinite; animation-delay: 0.05s; }
+@keyframes flap-near { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-26deg); } }
+@keyframes flap-far { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-15deg); } }
+/* scaleX(var(--dir)) lets JS flip Cappy to face the way it's flying */
 @keyframes bob {
-    0%, 100% { transform: translateY(0) rotate(-3deg); }
-    50% { transform: translateY(-12px) rotate(3deg); }
+    0%, 100% { transform: translateY(0) rotate(-3deg) scaleX(var(--dir)); }
+    50% { transform: translateY(-7px) rotate(3deg) scaleX(var(--dir)); }
 }
 /* excited hop + faster flapping when cheered */
 .mascot.cheer { animation: cheer 0.7s ease; }
-.mascot.cheer .capy-wing-near, .mascot.cheer .capy-wing-far { animation-duration: 0.28s; }
+.mascot.cheer .capy-wing-near, .mascot.cheer .capy-wing-far { animation-duration: 0.16s; }
 @keyframes cheer {
     0% { transform: translateY(0) scale(1); }
     35% { transform: translateY(-24px) scale(1.12); }

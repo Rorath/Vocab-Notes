@@ -97,6 +97,59 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+// ---------- Cappy flies freely around the screen ----------
+document.addEventListener("DOMContentLoaded", () => {
+    const m = document.getElementById("mascot");
+    if (!m) return;
+    const wrap = m.querySelector(".capy-wrap");
+    const margin = 8;
+    const SPEED = 3.1;      // max px per frame — bump for faster flight
+
+    const size = { w: m.offsetWidth || 70, h: m.offsetHeight || 66 };
+    let x = window.innerWidth - size.w - 28;
+    let y = window.innerHeight - size.h - 60;
+    let vx = -SPEED * 0.7;
+    let vy = -SPEED * 0.5;
+    let paused = false;
+
+    m.style.left = x + "px";
+    m.style.top = y + "px";
+
+    // Pause so it's easy to click / pet
+    m.addEventListener("mouseenter", () => { paused = true; });
+    m.addEventListener("mouseleave", () => { paused = false; });
+
+    function tick() {
+        if (!paused) {
+            // gentle random steering => free, wandering flight
+            vx += (Math.random() - 0.5) * 0.5;
+            vy += (Math.random() - 0.5) * 0.5;
+
+            // keep the speed lively but bounded
+            const mag = Math.hypot(vx, vy) || 1;
+            if (mag > SPEED) { vx = vx / mag * SPEED; vy = vy / mag * SPEED; }
+            else if (mag < SPEED * 0.6) { vx = vx / mag * SPEED * 0.6; vy = vy / mag * SPEED * 0.6; }
+
+            x += vx;
+            y += vy;
+
+            const maxX = window.innerWidth - size.w - margin;
+            const maxY = window.innerHeight - size.h - margin;
+            if (x < margin) { x = margin; vx = Math.abs(vx); }
+            if (x > maxX) { x = maxX; vx = -Math.abs(vx); }
+            if (y < margin) { y = margin; vy = Math.abs(vy); }
+            if (y > maxY) { y = maxY; vy = -Math.abs(vy); }
+
+            m.style.left = x + "px";
+            m.style.top = y + "px";
+            // face the direction of travel (body faces left by default)
+            if (wrap) wrap.style.setProperty("--dir", vx > 0 ? -1 : 1);
+        }
+        requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+});
+
 // ---------- Confetti ----------
 function launchConfetti() {
     const colors = ["#a855f7", "#22d3ee", "#ff9d6b", "#cc785c", "#f472b6", "#34d399"];
