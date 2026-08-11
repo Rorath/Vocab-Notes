@@ -35,6 +35,12 @@ def words():
         title=title,
     )
 
+@app.route("/list")
+def collection():
+    sort = request.args.get("sort", "recent")
+    words = get_all_words(sort)
+    return render_template("list.html", words=words, current_sort=sort)
+
 def _redirect_after_save(category):
     """Send the user back into the group they were working in."""
     if category:

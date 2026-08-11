@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word List · Vocab Notes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>if ((localStorage.getItem('theme') || 'dark') === 'light') document.documentElement.classList.add('light');</script>
+</head>
+<body>
+    <nav>
+        <h1>Vocab Notes</h1>
+    </nav>
+
+    <main>
+        <div class="list-head">
+            <h2 class="list-title">Word List</h2>
+            {% if words %}
+            <form class="toolbar" method="get" action="{{ url_for('collection') }}">
+                <label class="toolbar-field">
+                    Sort
+                    <select name="sort" onchange="this.form.submit()">
+                        <option value="recent" {{ 'selected' if current_sort == 'recent' }}>Newest first</option>
+                        <option value="oldest" {{ 'selected' if current_sort == 'oldest' }}>Oldest first</option>
+                        <option value="az" {{ 'selected' if current_sort == 'az' }}>A → Z</option>
+                        <option value="za" {{ 'selected' if current_sort == 'za' }}>Z → A</option>
+                    </select>
+                </label>
+            </form>
+            {% endif %}
+        </div>
+
+        {% if words %}
+            <p class="word-count">{{ words|length }} word{% if words|length != 1 %}s{% endif %} collected</p>
+            <div class="word-list">
+                {% for w in words %}
+                <div class="list-row" style="animation-delay: {{ loop.index0 * 0.04 }}s">
+                    <div class="list-cell list-word-cell">
+                        <span class="list-word">{{ w.word }}</span>
+                        {% if w.category %}<a class="category-chip" href="{{ url_for('words', category=w.category) }}">{{ w.category }}</a>{% endif %}
+                    </div>
+                    <div class="list-cell list-def-cell">
+                        <span class="list-en">{{ w.english_def }}</span>
+                        {% if w.chinese_def %}<span class="list-ch">{{ w.chinese_def }}</span>{% endif %}
+                    </div>
+                    <div class="list-cell list-action-cell">
+                        <a href="{{ url_for('edit', word_id=w.id) }}" class="btn-edit">Edit</a>
+                        <form method="POST" action="{{ url_for('delete', word_id=w.id) }}" onsubmit="return confirm('Delete {{ w.word }}?')">
+                            <button type="submit" class="btn-delete">Delete</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty">
+                <p>No words collected yet.</p>
+                <a href="{{ url_for('add') }}" class="btn-primary">Add your first word</a>
+            </div>
+        {% endif %}
+    </main>
+
+    {% include 'dock.html' %}
+    {% include 'mascot.html' %}
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>

@@ -14,6 +14,11 @@
         <span class="dock-tooltip">Learn</span>
         <span class="dock-dot"></span>
     </a>
+    <a href="{{ url_for('collection') }}" class="dock-item {{ 'active' if request.endpoint == 'collection' }}">
+        <span class="dock-icon">📋</span>
+        <span class="dock-tooltip">Word List</span>
+        <span class="dock-dot"></span>
+    </a>
     <span class="dock-sep"></span>
     <button type="button" class="dock-item" id="theme-toggle">
         <span class="dock-icon" id="theme-icon">🌙</span>
