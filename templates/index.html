@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocab Notes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <h1>Vocab Notes</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}" class="active">My Words</a>
+            <a href="{{ url_for('add') }}">+ Add Word</a>
+            <a href="{{ url_for('learn') }}">Learn</a>
+        </div>
+    </nav>
+
+    <main>
+        {% if words %}
+            <p class="word-count">{{ words|length }} word{% if words|length != 1 %}s{% endif %} in your vault</p>
+            <div class="word-grid">
+                {% for w in words %}
+                <div class="word-card">
+                    <div class="word-header">
+                        <h2>{{ w.word }}</h2>
+                        <div class="actions">
+                            <a href="{{ url_for('edit', word_id=w.id) }}" class="btn-edit">Edit</a>
+                            <form method="POST" action="{{ url_for('delete', word_id=w.id) }}" onsubmit="return confirm('Delete {{ w.word }}?')">
+                                <button type="submit" class="btn-delete">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="definitions">
+                        <div class="def-block">
+                            <span class="label">English</span>
+                            <p>{{ w.english_def }}</p>
+                        </div>
+                        <div class="def-block">
+                            <span class="label">中文</span>
+                            <p>{{ w.chinese_def }}</p>
+                        </div>
+                        {% if w.sentence %}
+                        <div class="def-block sentence">
+                            <span class="label">Example</span>
+                            <p>{{ w.sentence }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty">
+                <p>No words yet.</p>
+                <a href="{{ url_for('add') }}" class="btn-primary">Add your first word</a>
+            </div>
+        {% endif %}
+    </main>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>
