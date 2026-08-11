@@ -263,7 +263,54 @@ input:focus, textarea:focus {
 }
 .btn-known:hover { transform: translateY(-2px); box-shadow: 0 0 32px rgba(34, 211, 238, 0.7); }
 
-/* ---------- Mascot (Clau) ---------- */
+/* ---------- Toolbar (sort + group) ---------- */
+.toolbar { display: flex; gap: 14px; margin-bottom: 22px; flex-wrap: wrap; }
+.toolbar-center { justify-content: center; margin-bottom: 26px; }
+.toolbar-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+}
+.toolbar select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: rgba(255, 255, 255, 0.05) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238a8aa6' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E") no-repeat right 12px center;
+    border: 1px solid var(--line);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: inherit;
+    padding: 9px 34px 9px 13px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border 0.18s ease;
+}
+.toolbar select:hover { border-color: rgba(168, 85, 247, 0.5); }
+.toolbar select:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.18); }
+
+/* ---------- Category chip ---------- */
+.word-title { display: flex; flex-direction: column; gap: 6px; }
+.category-chip {
+    align-self: flex-start;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    color: var(--coral);
+    background: rgba(255, 157, 107, 0.12);
+    border: 1px solid rgba(255, 157, 107, 0.35);
+    padding: 2px 10px;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: all 0.15s ease;
+}
+.category-chip:hover { background: rgba(255, 157, 107, 0.22); box-shadow: 0 0 14px rgba(255, 157, 107, 0.35); }
+
+/* ---------- Mascot (Claude spark) ---------- */
 .mascot {
     position: fixed;
     bottom: 26px;
@@ -277,26 +324,26 @@ input:focus, textarea:focus {
 }
 .mascot svg { width: 100%; height: 100%; overflow: visible; }
 @keyframes floaty {
-    0%, 100% { transform: translateY(0) rotate(-1.5deg); }
-    50% { transform: translateY(-12px) rotate(1.5deg); }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
 }
-.mascot-eyes { transform-origin: center 58px; animation: blink 4.5s infinite; }
-@keyframes blink {
-    0%, 92%, 100% { transform: scaleY(1); }
-    95% { transform: scaleY(0.1); }
+.mascot-burst {
+    transform-origin: 60px 60px;
+    animation: spin 16s linear infinite, pulse 3s ease-in-out infinite;
 }
-.mascot-spark { animation: sparkle 1.8s ease-in-out infinite; }
-@keyframes sparkle {
-    0%, 100% { opacity: 1; r: 4; }
-    50% { opacity: 0.4; r: 5.5; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse {
+    0%, 100% { filter: drop-shadow(0 0 4px rgba(217, 119, 87, 0.4)); }
+    50% { filter: drop-shadow(0 0 14px rgba(217, 119, 87, 0.9)); }
 }
+.mascot.cheer .mascot-burst { animation: spin-fast 0.7s ease, pulse 3s ease-in-out infinite; }
+@keyframes spin-fast { from { transform: rotate(0); } to { transform: rotate(540deg); } }
 .mascot.cheer { animation: cheer 0.7s ease; }
 @keyframes cheer {
-    0% { transform: translateY(0) rotate(0); }
-    25% { transform: translateY(-26px) rotate(-12deg) scale(1.12); }
-    50% { transform: translateY(-10px) rotate(12deg) scale(1.12); }
-    75% { transform: translateY(-20px) rotate(-6deg) scale(1.08); }
-    100% { transform: translateY(0) rotate(0) scale(1); }
+    0% { transform: translateY(0) scale(1); }
+    35% { transform: translateY(-24px) scale(1.15); }
+    70% { transform: translateY(-8px) scale(1.08); }
+    100% { transform: translateY(0) scale(1); }
 }
 .mascot-bubble {
     position: absolute;

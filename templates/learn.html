@@ -17,6 +17,20 @@
     </nav>
 
     <main>
+        {% if categories %}
+        <form class="toolbar toolbar-center" method="get" action="{{ url_for('learn') }}">
+            <label class="toolbar-field">
+                Study group
+                <select name="category" onchange="this.form.submit()">
+                    <option value="">All words</option>
+                    {% for c in categories %}
+                    <option value="{{ c }}" {{ 'selected' if c == current_category }}>{{ c }}</option>
+                    {% endfor %}
+                </select>
+            </label>
+        </form>
+        {% endif %}
+
         {% if words %}
         <div class="learn-wrap">
             <div class="progress">
@@ -34,8 +48,8 @@
                             <span class="label">English</span>
                             <p id="card-english"></p>
                         </div>
-                        <div class="def-block">
-                            <span class="label">中文</span>
+                        <div class="def-block" id="chinese-block">
+                            <span class="label">Ch</span>
                             <p id="card-chinese"></p>
                         </div>
                         <div class="def-block sentence" id="sentence-block">

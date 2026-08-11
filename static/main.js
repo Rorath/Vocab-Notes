@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
             mascotCheer();
         });
         // greet on arrival
-        setTimeout(() => mascotSay("Hi! I'm Clau 👋", 2600), 700);
+        setTimeout(() => mascotSay("Hi! Claude here 👋", 2600), 700);
     }
 });
 
@@ -65,6 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const chineseEl = document.getElementById("card-chinese");
     const sentenceEl = document.getElementById("card-sentence");
     const sentenceBlock = document.getElementById("sentence-block");
+    const chineseBlock = document.getElementById("chinese-block");
     const currentIndexEl = document.getElementById("current-index");
 
     function render() {
@@ -73,7 +74,12 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
             wordEl.textContent = w.word;
             englishEl.textContent = w.english_def;
-            chineseEl.textContent = w.chinese_def;
+            if (w.chinese_def) {
+                chineseEl.textContent = w.chinese_def;
+                chineseBlock.style.display = "block";
+            } else {
+                chineseBlock.style.display = "none";
+            }
             if (w.sentence) {
                 sentenceEl.textContent = w.sentence;
                 sentenceBlock.style.display = "block";

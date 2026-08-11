@@ -29,8 +29,16 @@
                     <textarea name="english_def" rows="2" required>{{ word.english_def if word else '' }}</textarea>
                 </label>
                 <label>
-                    中文定義 (Traditional Chinese)
-                    <textarea name="chinese_def" rows="2" required>{{ word.chinese_def if word else '' }}</textarea>
+                    Ch Definition <span class="optional">(optional, Traditional Chinese)</span>
+                    <textarea name="chinese_def" rows="2">{{ word.chinese_def if word else '' }}</textarea>
+                </label>
+                <label>
+                    Group / Category <span class="optional">(optional — topic or source)</span>
+                    <input type="text" name="category" list="cat-list" placeholder="e.g. TOEFL, News, Business"
+                           value="{{ word.category if word and word.category else '' }}">
+                    <datalist id="cat-list">
+                        {% for c in categories %}<option value="{{ c }}">{% endfor %}
+                    </datalist>
                 </label>
                 <label>
                     Example Sentence <span class="optional">(optional)</span>

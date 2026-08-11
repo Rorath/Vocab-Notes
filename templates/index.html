@@ -17,13 +17,39 @@
     </nav>
 
     <main>
+        {% if words or current_category %}
+            <form class="toolbar" method="get" action="{{ url_for('index') }}">
+                <label class="toolbar-field">
+                    Group
+                    <select name="category" onchange="this.form.submit()">
+                        <option value="">All groups</option>
+                        {% for c in categories %}
+                        <option value="{{ c }}" {{ 'selected' if c == current_category }}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+                <label class="toolbar-field">
+                    Sort
+                    <select name="sort" onchange="this.form.submit()">
+                        <option value="recent" {{ 'selected' if current_sort == 'recent' }}>Newest first</option>
+                        <option value="oldest" {{ 'selected' if current_sort == 'oldest' }}>Oldest first</option>
+                        <option value="az" {{ 'selected' if current_sort == 'az' }}>A → Z</option>
+                        <option value="za" {{ 'selected' if current_sort == 'za' }}>Z → A</option>
+                    </select>
+                </label>
+            </form>
+        {% endif %}
+
         {% if words %}
-            <p class="word-count">{{ words|length }} word{% if words|length != 1 %}s{% endif %} in your vault</p>
+            <p class="word-count">{{ words|length }} word{% if words|length != 1 %}s{% endif %}{% if current_category %} in “{{ current_category }}”{% endif %}</p>
             <div class="word-grid">
                 {% for w in words %}
                 <div class="word-card" style="animation-delay: {{ loop.index0 * 0.06 }}s">
                     <div class="word-header">
-                        <h2>{{ w.word }}</h2>
+                        <div class="word-title">
+                            <h2>{{ w.word }}</h2>
+                            {% if w.category %}<a class="category-chip" href="{{ url_for('index', category=w.category) }}">{{ w.category }}</a>{% endif %}
+                        </div>
                         <div class="actions">
                             <a href="{{ url_for('edit', word_id=w.id) }}" class="btn-edit">Edit</a>
                             <form method="POST" action="{{ url_for('delete', word_id=w.id) }}" onsubmit="return confirm('Delete {{ w.word }}?')">
@@ -36,10 +62,12 @@
                             <span class="label">English</span>
                             <p>{{ w.english_def }}</p>
                         </div>
+                        {% if w.chinese_def %}
                         <div class="def-block">
-                            <span class="label">中文</span>
+                            <span class="label">Ch</span>
                             <p>{{ w.chinese_def }}</p>
                         </div>
+                        {% endif %}
                         {% if w.sentence %}
                         <div class="def-block sentence">
                             <span class="label">Example</span>
