@@ -58,6 +58,33 @@ def get_categories():
         ).fetchall()
     return [r["category"] for r in rows]
 
+def get_ungrouped_words(sort="recent"):
+    order = SORT_OPTIONS.get(sort, SORT_OPTIONS["recent"])
+    with get_conn() as conn:
+        return conn.execute(
+            f"SELECT * FROM words WHERE category IS NULL OR category = '' ORDER BY {order}"
+        ).fetchall()
+
+def get_group_summary():
+    """Return total word count, ungrouped count, and each group with its count."""
+    with get_conn() as conn:
+        total = conn.execute("SELECT COUNT(*) AS n FROM words").fetchone()["n"]
+        ungrouped = conn.execute(
+            "SELECT COUNT(*) AS n FROM words WHERE category IS NULL OR category = ''"
+        ).fetchone()["n"]
+        rows = conn.execute("""
+            SELECT category AS name, COUNT(*) AS count
+            FROM words
+            WHERE category IS NOT NULL AND category != ''
+            GROUP BY category
+            ORDER BY category COLLATE NOCASE
+        """).fetchall()
+    return {
+        "total": total,
+        "ungrouped": ungrouped,
+        "groups": [{"name": r["name"], "count": r["count"]} for r in rows],
+    }
+
 def get_word(word_id):
     with get_conn() as conn:
         return conn.execute("SELECT * FROM words WHERE id = ?", (word_id,)).fetchone()

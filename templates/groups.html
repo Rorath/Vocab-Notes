@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groups · Vocab Notes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav>
+        <h1>Vocab Notes</h1>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}" class="active">Groups</a>
+            <a href="{{ url_for('add') }}">+ Add Word</a>
+            <a href="{{ url_for('learn') }}">Learn</a>
+        </div>
+    </nav>
+
+    <main>
+        {% if summary.total %}
+            <p class="word-count">{{ summary.total }} word{% if summary.total != 1 %}s{% endif %} · {{ summary.groups|length }} group{% if summary.groups|length != 1 %}s{% endif %}</p>
+            <div class="group-grid">
+                <a class="group-card all-card" href="{{ url_for('words') }}" style="animation-delay: 0s">
+                    <div class="group-icon">📚</div>
+                    <h2>All Words</h2>
+                    <span class="group-count">{{ summary.total }} word{% if summary.total != 1 %}s{% endif %}</span>
+                </a>
+                {% for g in summary.groups %}
+                <a class="group-card" href="{{ url_for('words', category=g.name) }}" style="animation-delay: {{ (loop.index) * 0.06 }}s">
+                    <div class="group-icon">🗂️</div>
+                    <h2>{{ g.name }}</h2>
+                    <span class="group-count">{{ g.count }} word{% if g.count != 1 %}s{% endif %}</span>
+                </a>
+                {% endfor %}
+                {% if summary.ungrouped %}
+                <a class="group-card ungrouped-card" href="{{ url_for('words', ungrouped=1) }}" style="animation-delay: {{ (summary.groups|length + 1) * 0.06 }}s">
+                    <div class="group-icon">🏷️</div>
+                    <h2>Ungrouped</h2>
+                    <span class="group-count">{{ summary.ungrouped }} word{% if summary.ungrouped != 1 %}s{% endif %}</span>
+                </a>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="empty">
+                <p>No words yet. Create your first one!</p>
+                <a href="{{ url_for('add') }}" class="btn-primary">Add your first word</a>
+            </div>
+        {% endif %}
+    </main>
+
+    {% include 'mascot.html' %}
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>

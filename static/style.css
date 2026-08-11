@@ -263,6 +263,55 @@ input:focus, textarea:focus {
 }
 .btn-known:hover { transform: translateY(-2px); box-shadow: 0 0 32px rgba(34, 211, 238, 0.7); }
 
+/* ---------- Groups landing ---------- */
+.group-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 20px; }
+.group-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    text-decoration: none;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 30px 22px;
+    backdrop-filter: blur(6px);
+    color: var(--text);
+    transition: transform 0.2s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    opacity: 0;
+    animation: cardIn 0.5s ease forwards;
+}
+.group-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(168, 85, 247, 0.5);
+    box-shadow: var(--glow-purple), 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+.group-icon { font-size: 40px; margin-bottom: 12px; line-height: 1; }
+.group-card h2 {
+    font-size: 19px;
+    letter-spacing: -0.01em;
+    margin-bottom: 6px;
+    word-break: break-word;
+}
+.group-count { font-size: 13px; color: var(--muted); }
+.all-card { border-color: rgba(168, 85, 247, 0.4); }
+.all-card:hover { box-shadow: var(--glow-purple), 0 12px 40px rgba(0, 0, 0, 0.4); }
+.ungrouped-card .group-icon { opacity: 0.85; }
+
+/* ---------- Word-list header ---------- */
+.back-link {
+    display: inline-block;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 14px;
+    transition: color 0.15s ease;
+}
+.back-link:hover { color: var(--cyan); }
+.list-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; }
+.list-title { font-size: 26px; letter-spacing: -0.02em; }
+
 /* ---------- Toolbar (sort + group) ---------- */
 .toolbar { display: flex; gap: 14px; margin-bottom: 22px; flex-wrap: wrap; }
 .toolbar-center { justify-content: center; margin-bottom: 26px; }
