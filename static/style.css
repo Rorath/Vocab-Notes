@@ -433,11 +433,23 @@ html.light .list-word { -webkit-text-fill-color: transparent; }
     pointer-events: none;
 }
 /* near wing: bigger, leads the motion, pivots near the shoulder */
-.capy-wing-near { transform-origin: 54% 55%; animation: flap-near 0.32s ease-in-out infinite; }
+/* stepped (frame-by-frame) flap: steps(1,end) snaps between discrete poses
+   like a real hand-drawn animation clip instead of a smooth rotation */
+.capy-wing-near { transform-origin: 54% 55%; animation: flap-near 0.22s steps(1, end) infinite; }
 /* far wing: trails behind with a slight delay and smaller swing */
-.capy-wing-far { transform-origin: 62% 78%; animation: flap-far 0.32s ease-in-out infinite; animation-delay: 0.05s; }
-@keyframes flap-near { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-26deg); } }
-@keyframes flap-far { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-15deg); } }
+.capy-wing-far { transform-origin: 62% 78%; animation: flap-far 0.22s steps(1, end) infinite; animation-delay: 0.11s; }
+@keyframes flap-near {
+    0%, 100% { transform: rotate(-2deg); }
+    25%      { transform: rotate(-14deg); }
+    50%      { transform: rotate(-28deg); }
+    75%      { transform: rotate(-14deg); }
+}
+@keyframes flap-far {
+    0%, 100% { transform: rotate(-1deg); }
+    25%      { transform: rotate(-8deg); }
+    50%      { transform: rotate(-16deg); }
+    75%      { transform: rotate(-8deg); }
+}
 /* scaleX(var(--dir)) lets JS flip Cappy to face the way it's flying */
 @keyframes bob {
     0%, 100% { transform: translateY(0) rotate(-3deg) scaleX(var(--dir)); }
