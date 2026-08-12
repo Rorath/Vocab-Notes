@@ -25,12 +25,35 @@ body {
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
+    background: var(--bg);
+}
+
+/* ---------- Ambient living background (aurora + film grain) ---------- */
+body::before {
+    content: "";
+    position: fixed;
+    inset: -55%;
+    z-index: -2;
+    pointer-events: none;
     background:
-        radial-gradient(circle at 15% 0%, rgba(168, 85, 247, 0.18), transparent 40%),
-        radial-gradient(circle at 85% 20%, rgba(34, 211, 238, 0.14), transparent 42%),
-        radial-gradient(circle at 50% 100%, rgba(255, 157, 107, 0.10), transparent 45%),
-        var(--bg);
-    background-attachment: fixed;
+        radial-gradient(circle at 30% 32%, rgba(168, 85, 247, 0.22), transparent 46%),
+        radial-gradient(circle at 72% 38%, rgba(34, 211, 238, 0.17), transparent 46%),
+        radial-gradient(circle at 50% 78%, rgba(255, 157, 107, 0.14), transparent 46%);
+    filter: blur(44px) saturate(125%);
+    animation: auroraSpin 46s linear infinite;
+}
+@keyframes auroraSpin {
+    from { transform: rotate(0deg) scale(1.08); }
+    to   { transform: rotate(360deg) scale(1.08); }
+}
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* Nav */
@@ -43,15 +66,34 @@ nav {
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--line);
-    position: sticky;
+    position: fixed;
+    left: 0;
+    right: 0;
     top: 0;
-    z-index: 10;
+    z-index: 40;
+    transform: translateY(-100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
 }
+/* invisible strip along the very top edge that catches the hover */
+nav::before {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    height: 16px;
+}
+/* slide the header into view on hover-at-top (or keyboard focus) */
+nav:hover,
+nav:focus-within { transform: translateY(0); }
 nav h1 {
     font-size: 20px;
     font-weight: 800;
     letter-spacing: -0.02em;
-    background: linear-gradient(90deg, var(--purple), var(--cyan));
+    background: linear-gradient(90deg, var(--purple), var(--cyan), var(--purple));
+    background-size: 200% auto;
+    animation: shimmer 7s linear infinite;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -77,9 +119,12 @@ nav h1 {
 main { max-width: 920px; margin: 0 auto; padding: 36px 32px 140px; }
 .word-count { color: var(--muted); font-size: 14px; margin-bottom: 22px; }
 
-/* Word grid */
-.word-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+/* Word grid — masonry: equal width, each card as tall as its own content */
+.word-grid { column-width: 300px; column-gap: 20px; }
 .word-card {
+    break-inside: avoid;
+    -webkit-column-break-inside: avoid;
+    margin: 0 0 20px;
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: var(--radius);
@@ -237,7 +282,9 @@ input:focus, textarea:focus {
 .flashcard-front h2 {
     font-size: 46px;
     letter-spacing: -0.03em;
-    background: linear-gradient(90deg, var(--purple), var(--cyan));
+    background: linear-gradient(90deg, var(--purple), var(--cyan), var(--purple));
+    background-size: 200% auto;
+    animation: shimmer 7s linear infinite;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -325,7 +372,9 @@ input:focus, textarea:focus {
     font-size: 18px;
     font-weight: 700;
     letter-spacing: -0.01em;
-    background: linear-gradient(90deg, var(--purple), var(--cyan));
+    background: linear-gradient(90deg, var(--purple), var(--cyan), var(--purple));
+    background-size: 200% auto;
+    animation: shimmer 7s linear infinite;
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -434,11 +483,11 @@ html.light .list-word { -webkit-text-fill-color: transparent; }
 }
 /* true frame-by-frame sprite: four full-body clips swapped in sequence
    so it reads like a real hand-drawn flap animation */
-.capy-frame { object-fit: contain; opacity: 0; animation: flapcycle 0.44s steps(1, end) infinite; }
+.capy-frame { object-fit: contain; opacity: 0; animation: flapcycle 0.28s steps(1, end) infinite; }
 .capy-frame.f0 { animation-delay: 0s; }
-.capy-frame.f1 { animation-delay: 0.11s; }
-.capy-frame.f2 { animation-delay: 0.22s; }
-.capy-frame.f3 { animation-delay: 0.33s; }
+.capy-frame.f1 { animation-delay: 0.07s; }
+.capy-frame.f2 { animation-delay: 0.14s; }
+.capy-frame.f3 { animation-delay: 0.21s; }
 @keyframes flapcycle {
     0%, 24.99% { opacity: 1; }
     25%, 100%  { opacity: 0; }
@@ -588,13 +637,9 @@ html.light {
     --glow-purple: 0 0 20px rgba(168, 85, 247, 0.22);
     --glow-cyan: 0 0 20px rgba(34, 211, 238, 0.20);
 }
-html.light body {
-    background:
-        radial-gradient(circle at 15% 0%, rgba(168, 85, 247, 0.12), transparent 40%),
-        radial-gradient(circle at 85% 20%, rgba(34, 211, 238, 0.10), transparent 42%),
-        radial-gradient(circle at 50% 100%, rgba(255, 157, 107, 0.09), transparent 45%),
-        var(--bg);
-}
+html.light body { background: var(--bg); }
+html.light body::before { opacity: 0.72; filter: blur(44px) saturate(135%); }
+html.light body::after { opacity: 0.02; }
 html.light nav { background: rgba(255, 255, 255, 0.72); }
 html.light .word-header h2 { background: none; -webkit-text-fill-color: var(--text); color: var(--text); }
 html.light input, html.light textarea { background: rgba(20, 20, 50, 0.03); }
@@ -611,6 +656,322 @@ html.light .dock-sep { background: rgba(20, 20, 50, 0.12); }
 @media (max-width: 600px) {
     nav { flex-direction: column; gap: 12px; padding: 16px; }
     main { padding: 22px 22px 130px; }
-    .word-grid { grid-template-columns: 1fr; }
+    .word-grid { column-width: auto; column-count: 1; }
     .mascot { width: 80px; height: 75px; bottom: 92px; right: 14px; }
+}
+
+/* ============================================================
+   Fancy finishing touches
+   ============================================================ */
+
+/* flowing gradient for shimmering titles */
+@keyframes shimmer { to { background-position: 200% center; } }
+
+/* glass sheen — a soft top-left highlight layered over the frosted cards */
+.word-card, .group-card, .form-wrap, .list-row,
+.flashcard-front, .flashcard-back {
+    background-image: linear-gradient(155deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 42%);
+}
+
+/* light sweep across primary buttons on hover */
+.btn-primary, .btn-known { position: relative; overflow: hidden; }
+.btn-primary::after, .btn-known::after {
+    content: "";
+    position: absolute;
+    top: 0; left: -160%;
+    width: 55%; height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transform: skewX(-20deg);
+    transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+.btn-primary:hover::after, .btn-known:hover::after { left: 160%; }
+
+/* gradient accent line that lights up on card / row hover */
+.word-card, .group-card, .list-row { position: relative; overflow: hidden; }
+.word-card::after, .group-card::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--purple), var(--cyan), var(--coral));
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.word-card:hover::after, .group-card:hover::after { opacity: 1; }
+.list-row::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    width: 3px;
+    background: linear-gradient(180deg, var(--purple), var(--cyan));
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+.list-row:hover::after { opacity: 1; }
+
+/* subtle gradient glow under the sticky nav */
+nav::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.6), rgba(34, 211, 238, 0.5), transparent);
+    pointer-events: none;
+}
+
+/* custom gradient scrollbar */
+* { scrollbar-width: thin; scrollbar-color: var(--purple) transparent; }
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(var(--purple), var(--cyan));
+    border-radius: 999px;
+    border: 3px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(var(--cyan), var(--purple)); }
+
+/* branded text selection */
+::selection { background: rgba(168, 85, 247, 0.35); color: #fff; text-shadow: none; }
+
+/* respect users who prefer less motion — calm the ambient loops */
+@media (prefers-reduced-motion: reduce) {
+    body::before,
+    .capy-frame, .capy-wrap,
+    nav h1, .list-word, .flashcard-front h2 { animation: none !important; }
+}
+
+/* ============================================================
+   Decorative PIXEL endless-runner banner (full-width, not playable)
+   ============================================================ */
+.runner { animation: cardIn 0.5s ease forwards; }
+.runner-scene {
+    position: relative;
+    height: 150px;
+    overflow: hidden;
+    pointer-events: none;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, #10101d 0%, #15152a 62%, #191934 100%);
+    box-shadow: inset 0 -22px 44px rgba(0, 0, 0, 0.4), inset 0 2px 0 rgba(255, 255, 255, 0.03);
+}
+/* faint pixel stars in the sky */
+.runner-scene::before {
+    content: "";
+    position: absolute; inset: 0;
+    pointer-events: none;
+    background-repeat: no-repeat;
+    background-image:
+        radial-gradient(1px 1px at 12% 30%, rgba(255, 255, 255, 0.5), transparent),
+        radial-gradient(1px 1px at 27% 16%, rgba(255, 255, 255, 0.35), transparent),
+        radial-gradient(1px 1px at 46% 34%, rgba(255, 255, 255, 0.3), transparent),
+        radial-gradient(1px 1px at 63% 20%, rgba(255, 255, 255, 0.42), transparent),
+        radial-gradient(1px 1px at 81% 12%, rgba(255, 255, 255, 0.3), transparent),
+        radial-gradient(1px 1px at 92% 38%, rgba(255, 255, 255, 0.36), transparent);
+}
+.runner-score {
+    position: absolute;
+    top: 14px; right: 22px;
+    z-index: 5;
+    font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #aab0d0;
+}
+
+/* pixel ground: a solid line with stepped dashes racing past */
+.runner-ground {
+    position: absolute;
+    left: 0; right: 0; bottom: 24px;
+    height: 2px;
+    background: rgba(160, 160, 195, 0.5);
+}
+.runner-ground::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: 5px;
+    height: 3px;
+    background-image: repeating-linear-gradient(90deg, rgba(160, 160, 195, 0.4) 0 4px, transparent 4px 24px);
+    animation: pxGround 0.6s steps(7) infinite;
+}
+@keyframes pxGround { to { background-position-x: -28px; } }
+
+/* shared crisp pixel rendering for every sprite */
+.px-dino, .px-cactus, .px-bird, .px-cloud {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+/* the runner — 2-frame run sprite + a natural gravity jump */
+.px-dino {
+    position: absolute;
+    left: 7%; bottom: 24px;
+    width: 64px; height: 64px;
+    background: url("pixel/dino.svg") 0 0 / 128px 64px no-repeat;
+    z-index: 3;
+    filter: drop-shadow(0 0 7px rgba(34, 211, 238, 0.30)) drop-shadow(0 4px 3px rgba(0, 0, 0, 0.5));
+    animation: dinoRun 0.34s steps(2) infinite, dinoJump 1.5s linear infinite 0.37s;
+}
+@keyframes dinoRun { to { background-position-x: -128px; } }
+/* rise decelerates to the apex, fall accelerates (gravity), then rests on the ground */
+@keyframes dinoJump {
+    0%, 6%    { transform: translateY(0);     animation-timing-function: cubic-bezier(0.12, 0.62, 0.3, 1); }
+    46%       { transform: translateY(-58px); animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.45); }
+    80%, 100% { transform: translateY(0); }
+}
+
+/* cacti — two share a 3s loop, offset so one passes the dino every 1.5s */
+.px-cactus {
+    position: absolute;
+    bottom: 24px; left: 105%;
+    width: 28px; height: 44px;
+    background: url("pixel/cactus_s.svg") center bottom / contain no-repeat;
+    z-index: 2;
+    filter: drop-shadow(0 0 5px rgba(60, 224, 208, 0.28)) drop-shadow(0 3px 2px rgba(0, 0, 0, 0.4));
+    animation: pxObstacle 3s linear infinite;
+}
+.px-cactus.big {
+    width: 36px; height: 56px;
+    background-image: url("pixel/cactus_l.svg");
+    animation-delay: -1.5s;
+}
+@keyframes pxObstacle {
+    from { left: 105%; }
+    to   { left: -10%; }
+}
+
+/* pterodactyl gliding across up high, wings flapping */
+.px-bird {
+    position: absolute;
+    top: 44px; left: 110%;
+    width: 44px; height: 28px;
+    background: url("pixel/bird.svg") 0 0 / 88px 28px no-repeat;
+    z-index: 2;
+    opacity: 0.9;
+    filter: drop-shadow(0 0 5px rgba(192, 132, 252, 0.35));
+    animation: pxBirdFly 6s linear infinite, pxFlap 0.24s steps(2) infinite;
+}
+@keyframes pxBirdFly { from { left: 110%; } to { left: -12%; } }
+@keyframes pxFlap { to { background-position-x: -88px; } }
+
+/* drifting pixel clouds */
+.px-cloud {
+    position: absolute;
+    z-index: 1;
+    background: url("pixel/cloud.svg") center / contain no-repeat;
+    opacity: 0.5;
+    animation: pxCloud linear infinite;
+}
+.px-cloud.c1 { top: 20px; width: 52px; height: 22px; animation-duration: 12s; }
+.px-cloud.c2 { top: 44px; width: 38px; height: 16px; opacity: 0.34; animation-duration: 16s; animation-delay: -6s; }
+.px-cloud.c3 { top: 12px; width: 44px; height: 18px; opacity: 0.4; animation-duration: 14s; animation-delay: -10s; }
+@keyframes pxCloud { from { left: 110%; } to { left: -22%; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .px-dino, .px-cactus, .px-bird, .px-cloud, .runner-ground::before { animation: none !important; }
+}
+@media (max-width: 600px) {
+    .runner-scene { height: 120px; }
+    .px-dino { left: 10%; }
+}
+
+/* ============================================================
+   Multi-example rotator (word cards) + example inputs (form)
+   ============================================================ */
+
+/* single example renders normally; multiple ones cross-fade in place */
+.example-rotator.is-rotating .example-stack {
+    position: relative;
+    min-height: 1.5em;
+    overflow: hidden;
+    transition: height 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.example-rotator.is-rotating .example-item {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    margin: 0;
+    opacity: 0;
+    transform: translateY(9px);
+    transition: opacity 0.55s ease, transform 0.55s ease;
+    pointer-events: none;
+}
+.example-rotator.is-rotating .example-item.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+.example-item { margin: 0; }
+
+/* little progress dots under a rotating example */
+.example-dots { display: flex; gap: 5px; margin-top: 9px; }
+.example-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--muted);
+    opacity: 0.4;
+    transition: opacity 0.3s ease, background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+.example-dot.active {
+    opacity: 1;
+    background: var(--cyan);
+    box-shadow: var(--glow-cyan);
+    transform: scale(1.2);
+}
+
+/* flashcard shows every example / definition, one per line */
+#card-sentence, #card-english { white-space: pre-line; }
+
+/* numbering when a word has multiple English definitions */
+.def-block .def-num {
+    color: var(--cyan);
+    font-weight: 700;
+    opacity: 0.8;
+    margin-right: 2px;
+}
+.def-block p + p { margin-top: 5px; }
+
+/* ---- form: dynamic example inputs ---- */
+.examples-field { margin-bottom: 18px; }
+.field-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--text);
+}
+.example-inputs { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.example-input-row { display: flex; gap: 8px; align-items: stretch; }
+.example-input-row textarea { margin-top: 0; }
+.btn-remove-example {
+    flex: none;
+    width: 40px;
+    background: rgba(255, 91, 124, 0.07);
+    border: 1px solid var(--line);
+    color: var(--muted);
+    border-radius: 11px;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: inherit;
+    transition: all 0.15s ease;
+}
+.btn-remove-example:hover {
+    color: var(--danger);
+    border-color: rgba(255, 91, 124, 0.5);
+    background: rgba(255, 91, 124, 0.14);
+}
+.btn-add-example {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed var(--line);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 11px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s ease;
+}
+.btn-add-example:hover {
+    border-color: rgba(168, 85, 247, 0.6);
+    color: #fff;
+    background: rgba(168, 85, 247, 0.12);
 }

@@ -20,10 +20,20 @@
                     Word
                     <input type="text" name="word" value="{{ word.word if word else '' }}" required autofocus>
                 </label>
-                <label>
-                    English Definition
-                    <textarea name="english_def" rows="2" required>{{ word.english_def if word else '' }}</textarea>
-                </label>
+                <div class="examples-field">
+                    <span class="field-label">English Definition <span class="optional">(optional — add one or more)</span></span>
+                    <div class="example-inputs" id="english-inputs" data-name="english_def"
+                         data-placeholder="e.g. a symbol of good luck for a team or brand">
+                        {% set en_list = english_defs|default([]) %}
+                        {% for d in (en_list if en_list else ['']) %}
+                        <div class="example-input-row">
+                            <textarea name="english_def" rows="2" placeholder="e.g. a symbol of good luck for a team or brand">{{ d }}</textarea>
+                            <button type="button" class="btn-remove-example" aria-label="Remove definition">✕</button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn-add-example" data-add="english-inputs">+ Add definition</button>
+                </div>
                 <label>
                     Ch Definition <span class="optional">(optional, Traditional Chinese)</span>
                     <textarea name="chinese_def" rows="2">{{ word.chinese_def if word else '' }}</textarea>
@@ -36,10 +46,20 @@
                         {% for c in categories %}<option value="{{ c }}">{% endfor %}
                     </datalist>
                 </label>
-                <label>
-                    Example Sentence <span class="optional">(optional)</span>
-                    <textarea name="sentence" rows="3">{{ word.sentence if word else '' }}</textarea>
-                </label>
+                <div class="examples-field">
+                    <span class="field-label">Examples <span class="optional">(optional — add as many as you like)</span></span>
+                    <div class="example-inputs" id="example-inputs" data-name="examples"
+                         data-placeholder="e.g. She gave a brilliant example.">
+                        {% set ex_list = examples|default([]) %}
+                        {% for ex in (ex_list if ex_list else ['']) %}
+                        <div class="example-input-row">
+                            <textarea name="examples" rows="2" placeholder="e.g. She gave a brilliant example.">{{ ex }}</textarea>
+                            <button type="button" class="btn-remove-example" aria-label="Remove example">✕</button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" class="btn-add-example" data-add="example-inputs">+ Add example</button>
+                </div>
                 <div class="form-actions">
                     <a href="{{ url_for('index') }}" class="btn-secondary">Cancel</a>
                     <button type="submit" class="btn-primary">{{ "Save Changes" if word else "Add Word" }}</button>

@@ -51,20 +51,35 @@
                         </div>
                     </div>
                     <div class="definitions">
+                        {% set en_list = w.english_defs | as_list %}
+                        {% if en_list %}
                         <div class="def-block">
                             <span class="label">English</span>
-                            <p>{{ w.english_def }}</p>
+                            {% for d in en_list %}
+                            <p>{% if en_list|length > 1 %}<span class="def-num">{{ loop.index }}.</span> {% endif %}{{ d }}</p>
+                            {% endfor %}
                         </div>
+                        {% endif %}
                         {% if w.chinese_def %}
                         <div class="def-block">
                             <span class="label">Ch</span>
                             <p>{{ w.chinese_def }}</p>
                         </div>
                         {% endif %}
-                        {% if w.sentence %}
-                        <div class="def-block sentence">
-                            <span class="label">Example</span>
-                            <p>{{ w.sentence }}</p>
+                        {% set ex_list = w.examples | as_list %}
+                        {% if ex_list %}
+                        <div class="def-block sentence example-rotator{% if ex_list|length > 1 %} is-rotating{% endif %}">
+                            <span class="label">Example{{ 's' if ex_list|length > 1 }}</span>
+                            <div class="example-stack">
+                                {% for ex in ex_list %}
+                                <p class="example-item{% if loop.first %} active{% endif %}">{{ ex }}</p>
+                                {% endfor %}
+                            </div>
+                            {% if ex_list|length > 1 %}
+                            <div class="example-dots" aria-hidden="true">
+                                {% for ex in ex_list %}<span class="example-dot{% if loop.first %} active{% endif %}"></span>{% endfor %}
+                            </div>
+                            {% endif %}
                         </div>
                         {% endif %}
                     </div>

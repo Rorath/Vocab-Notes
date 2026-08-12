@@ -11,6 +11,20 @@ app = Flask(__name__)
 def setup():
     init_db()
 
+def load_list(raw):
+    """Parse a stored JSON array into a list of strings (robust to legacy/plain values)."""
+    if not raw:
+        return []
+    try:
+        val = json.loads(raw)
+    except (ValueError, TypeError):
+        return [str(raw)]
+    if isinstance(val, list):
+        return [str(v) for v in val if str(v).strip()]
+    return [str(val)]
+
+app.jinja_env.filters["as_list"] = load_list
+
 @app.route("/")
 def index():
     return render_template("groups.html", summary=get_group_summary())
@@ -51,11 +65,11 @@ def _redirect_after_save(category):
 def add():
     if request.method == "POST":
         word = request.form["word"].strip()
-        english_def = request.form["english_def"].strip()
+        english_defs = [d.strip() for d in request.form.getlist("english_def") if d.strip()]
         chinese_def = request.form.get("chinese_def", "").strip()
-        sentence = request.form.get("sentence", "").strip()
+        examples = [e.strip() for e in request.form.getlist("examples") if e.strip()]
         category = request.form.get("category", "").strip()
-        add_word(word, english_def, chinese_def, sentence, category)
+        add_word(word, english_defs, chinese_def, examples, category)
         return _redirect_after_save(category)
     return render_template("add.html", categories=get_categories())
 
@@ -64,16 +78,24 @@ def edit(word_id):
     word = get_word(word_id)
     if request.method == "POST":
         category = request.form.get("category", "").strip()
+        english_defs = [d.strip() for d in request.form.getlist("english_def") if d.strip()]
+        examples = [e.strip() for e in request.form.getlist("examples") if e.strip()]
         update_word(
             word_id,
             request.form["word"].strip(),
-            request.form["english_def"].strip(),
+            english_defs,
             request.form.get("chinese_def", "").strip(),
-            request.form.get("sentence", "").strip(),
+            examples,
             category,
         )
         return _redirect_after_save(category)
-    return render_template("add.html", word=word, categories=get_categories())
+    return render_template(
+        "add.html",
+        word=word,
+        english_defs=load_list(word["english_defs"]) if word else [],
+        examples=load_list(word["examples"]) if word else [],
+        categories=get_categories(),
+    )
 
 @app.route("/delete/<int:word_id>", methods=["POST"])
 def delete(word_id):
@@ -84,7 +106,12 @@ def delete(word_id):
 def learn():
     category = request.args.get("category") or None
     words = get_all_words("recent", category)
-    words_json = json.dumps([dict(w) for w in words])
+    words_json = json.dumps([
+        {**dict(w),
+         "english_defs": load_list(w["english_defs"]),
+         "examples": load_list(w["examples"])}
+        for w in words
+    ])
     return render_template(
         "learn.html",
         words=words,
@@ -96,7 +123,12 @@ def learn():
 @app.route("/api/words")
 def api_words():
     words = get_all_words()
-    return jsonify([dict(w) for w in words])
+    return jsonify([
+        {**dict(w),
+         "english_defs": load_list(w["english_defs"]),
+         "examples": load_list(w["examples"])}
+        for w in words
+    ])
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5001)

@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 vocab.db
 .DS_Store
+.Rhistory

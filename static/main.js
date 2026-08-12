@@ -176,6 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const card = document.getElementById("flashcard");
     const wordEl = document.getElementById("card-word");
     const englishEl = document.getElementById("card-english");
+    const englishBlock = document.getElementById("english-block");
     const chineseEl = document.getElementById("card-chinese");
     const sentenceEl = document.getElementById("card-sentence");
     const sentenceBlock = document.getElementById("sentence-block");
@@ -187,15 +188,22 @@ document.addEventListener("DOMContentLoaded", () => {
         card.classList.remove("flipped");
         setTimeout(() => {
             wordEl.textContent = w.word;
-            englishEl.textContent = w.english_def;
+            const defs = w.english_defs || [];
+            if (defs.length) {
+                englishEl.textContent = defs.join("\n");
+                englishBlock.style.display = "block";
+            } else {
+                englishBlock.style.display = "none";
+            }
             if (w.chinese_def) {
                 chineseEl.textContent = w.chinese_def;
                 chineseBlock.style.display = "block";
             } else {
                 chineseBlock.style.display = "none";
             }
-            if (w.sentence) {
-                sentenceEl.textContent = w.sentence;
+            const examples = w.examples || [];
+            if (examples.length) {
+                sentenceEl.textContent = examples.join("\n");
                 sentenceBlock.style.display = "block";
             } else {
                 sentenceBlock.style.display = "none";
@@ -246,4 +254,74 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     render();
+});
+
+// ---- Word cards: cross-fade through multiple examples every 10s ----
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".example-rotator.is-rotating").forEach((rotator) => {
+        const stack = rotator.querySelector(".example-stack");
+        const items = [...rotator.querySelectorAll(".example-item")];
+        const dots = [...rotator.querySelectorAll(".example-dot")];
+        if (items.length < 2) return;
+
+        let i = 0;
+        const fit = () => { stack.style.height = items[i].offsetHeight + "px"; };
+        fit();
+        window.addEventListener("resize", fit);
+
+        setInterval(() => {
+            const prev = i;
+            i = (i + 1) % items.length;
+            items[prev].classList.remove("active");
+            items[i].classList.add("active");
+            if (dots.length) {
+                dots[prev].classList.remove("active");
+                dots[i].classList.add("active");
+            }
+            stack.style.height = items[i].offsetHeight + "px";
+        }, 10000);
+    });
+});
+
+// ---- Add/Edit form: dynamic multi-input rows (definitions & examples) ----
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".btn-add-example[data-add]").forEach((addBtn) => {
+        const inputs = document.getElementById(addBtn.dataset.add);
+        if (!inputs) return;
+        const name = inputs.dataset.name;
+        const placeholder = inputs.dataset.placeholder || "";
+
+        const makeRow = (value = "") => {
+            const row = document.createElement("div");
+            row.className = "example-input-row";
+            const ta = document.createElement("textarea");
+            ta.name = name;
+            ta.rows = 2;
+            ta.placeholder = placeholder;
+            ta.value = value;
+            const rm = document.createElement("button");
+            rm.type = "button";
+            rm.className = "btn-remove-example";
+            rm.setAttribute("aria-label", "Remove");
+            rm.textContent = "✕";
+            row.append(ta, rm);
+            return row;
+        };
+
+        addBtn.addEventListener("click", () => {
+            const row = makeRow();
+            inputs.appendChild(row);
+            row.querySelector("textarea").focus();
+        });
+
+        inputs.addEventListener("click", (e) => {
+            if (!e.target.classList.contains("btn-remove-example")) return;
+            const rows = inputs.querySelectorAll(".example-input-row");
+            if (rows.length > 1) {
+                e.target.closest(".example-input-row").remove();
+            } else {
+                e.target.closest(".example-input-row").querySelector("textarea").value = "";
+            }
+        });
+    });
 });

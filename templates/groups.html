@@ -12,6 +12,21 @@
         <h1>Vocab Notes</h1>
     </nav>
 
+    <!-- decorative pixel endless-runner banner (full-width, not interactive) -->
+    <div class="runner" aria-hidden="true">
+        <div class="runner-scene">
+            <span class="runner-score">HI 09842</span>
+            <span class="px-cloud c1"></span>
+            <span class="px-cloud c2"></span>
+            <span class="px-cloud c3"></span>
+            <span class="px-bird"></span>
+            <span class="px-cactus k1"></span>
+            <span class="px-cactus k2 big"></span>
+            <span class="px-dino"></span>
+            <div class="runner-ground"></div>
+        </div>
+    </div>
+
     <main>
         {% if summary.total %}
             <p class="word-count">{{ summary.total }} word{% if summary.total != 1 %}s{% endif %} · {{ summary.groups|length }} group{% if summary.groups|length != 1 %}s{% endif %}</p>
