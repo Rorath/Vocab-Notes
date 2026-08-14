@@ -1,10 +1,7 @@
 // ---------- Mascot (Clau) ----------
 const MASCOT_LINES = [
-    "You've got this! 🧡",
-    "Keep going, superstar!",
-    "One word at a time ✨",
-    "I'm proud of you!",
-    "Nice work! 🎉",
+    "🧡",
+    "🫶",
 ];
 
 function mascotSay(text, ms = 2200) {
@@ -29,6 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const m = document.getElementById("mascot");
     if (m) {
         m.addEventListener("click", () => {
+            if (m._dragged) { m._dragged = false; return; } // ignore the click that ends a drag
             mascotCheer();
         });
         // greet on arrival
@@ -111,16 +109,99 @@ document.addEventListener("DOMContentLoaded", () => {
     let vx = -SPEED * 0.7;
     let vy = -SPEED * 0.5;
     let paused = false;
+    let dragging = false;
 
     m.style.left = x + "px";
     m.style.top = y + "px";
 
+    // ---- Pixel sparkle trail streaming behind Cappy ----
+    const TRAIL_COLORS = ["#a855f7", "#22d3ee", "#ff9d6b", "#f472b6", "#34d399"];
+    let trailX = x, trailY = y, colorI = 0;
+    function spawnTrail() {
+        const cx = x + size.w / 2, cy = y + size.h / 2;
+        // only drop a pixel once we've moved far enough (keeps the trail even)
+        if (Math.hypot(cx - trailX, cy - trailY) < 14) return;
+        trailX = cx; trailY = cy;
+        const p = document.createElement("div");
+        p.className = "capy-trail";
+        const jitter = () => (Math.random() - 0.5) * 14;
+        p.style.left = (cx + jitter() - 4) + "px";
+        p.style.top = (cy + jitter() - 4) + "px";
+        const c = TRAIL_COLORS[colorI++ % TRAIL_COLORS.length];
+        p.style.background = c;
+        p.style.color = c;   // drives the box-shadow glow via currentColor
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), 750);
+    }
+
     // Pause so it's easy to click / pet
-    m.addEventListener("mouseenter", () => { paused = true; });
-    m.addEventListener("mouseleave", () => { paused = false; });
+    m.addEventListener("mouseenter", () => { if (!dragging) paused = true; });
+    m.addEventListener("mouseleave", () => { if (!dragging) paused = false; });
+
+    // ---- Drag Cappy with the cursor (then "throw" him back into flight) ----
+    let grabDX = 0, grabDY = 0;          // pointer offset within the sprite
+    let lastX = 0, lastY = 0, lastT = 0; // for computing throw velocity
+    let throwVX = 0, throwVY = 0;
+
+    function clamp() {
+        const maxX = window.innerWidth - size.w - margin;
+        const maxY = window.innerHeight - size.h - margin;
+        if (x < margin) x = margin; else if (x > maxX) x = maxX;
+        if (y < margin) y = margin; else if (y > maxY) y = maxY;
+    }
+
+    m.addEventListener("pointerdown", (e) => {
+        if (e.button !== 0) return;
+        dragging = true;
+        m._dragged = false;
+        m.classList.add("dragging");
+        m.setPointerCapture(e.pointerId);
+        grabDX = e.clientX - x;
+        grabDY = e.clientY - y;
+        lastX = e.clientX; lastY = e.clientY; lastT = e.timeStamp;
+        throwVX = throwVY = 0;
+        e.preventDefault();
+    });
+
+    m.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        x = e.clientX - grabDX;
+        y = e.clientY - grabDY;
+        clamp();
+        m.style.left = x + "px";
+        m.style.top = y + "px";
+        // face the way we're being dragged
+        if (wrap) wrap.style.setProperty("--dir", e.clientX > lastX ? -1 : 1);
+        // track pointer velocity so a flick launches him
+        const dt = e.timeStamp - lastT;
+        if (dt > 0) {
+            throwVX = (e.clientX - lastX) / dt * 16; // px per ~frame
+            throwVY = (e.clientY - lastY) / dt * 16;
+        }
+        if (Math.abs(e.clientX - lastX) + Math.abs(e.clientY - lastY) > 3) m._dragged = true;
+        lastX = e.clientX; lastY = e.clientY; lastT = e.timeStamp;
+        spawnTrail();
+    });
+
+    function endDrag(e) {
+        if (!dragging) return;
+        dragging = false;
+        m.classList.remove("dragging");
+        try { m.releasePointerCapture(e.pointerId); } catch (_) {}
+        // hand momentum back to the flight sim (bounded)
+        const mag = Math.hypot(throwVX, throwVY);
+        if (mag > 0.5) {
+            const cap = Math.min(mag, SPEED * 3);
+            vx = throwVX / mag * cap;
+            vy = throwVY / mag * cap;
+        }
+        paused = m.matches(":hover"); // if released while hovering, stay put
+    }
+    m.addEventListener("pointerup", endDrag);
+    m.addEventListener("pointercancel", endDrag);
 
     function tick() {
-        if (!paused) {
+        if (!paused && !dragging) {
             // gentle random steering => free, wandering flight
             vx += (Math.random() - 0.5) * 0.5;
             vy += (Math.random() - 0.5) * 0.5;
@@ -144,6 +225,7 @@ document.addEventListener("DOMContentLoaded", () => {
             m.style.top = y + "px";
             // face the direction of travel (body faces left by default)
             if (wrap) wrap.style.setProperty("--dir", vx > 0 ? -1 : 1);
+            spawnTrail();
         }
         requestAnimationFrame(tick);
     }

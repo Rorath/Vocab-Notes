@@ -38,25 +38,23 @@ def to_svg(frames, color):
             f'viewBox="0 0 {W} {h}" shape-rendering="crispEdges" fill="{color}">{body}</svg>')
 
 
-# ---- dino (16x16), head faces right; two run frames differ only in the feet ----
+# ---- dino (14x14), head faces right; two run frames differ only in the feet ----
 dino_body = [
-    "........#####...",
-    "........######..",
-    "........#.####..",
-    "........######..",
-    "........#####...",
-    "#.......#####...",
-    "##.....######...",
-    "###..########...",
-    ".###########....",
-    "..##########....",
-    "..#########.....",
-    "..########......",
-    "..##...###......",
-    "..##....##......",
+    "........#####.",
+    "........######",
+    "........#.###.",
+    "........######",
+    "#......#####..",
+    "##....######..",
+    "###..#######..",
+    ".###########..",
+    "..##########..",
+    "..#########...",
+    "..########....",
+    "..#######.....",
 ]
-dino_f1 = dino_body + ["..#.....##......", "..#.....##......"]
-dino_f2 = dino_body + ["..##....#.......", "..##....##......"]
+dino_f1 = dino_body + ["..##...##.....", "..##....#....."]
+dino_f2 = dino_body + ["..##...##.....", "..#....##....."]
 
 # ---- cactus small (7x11) and large (9x14) ----
 cactus_s = [
@@ -100,8 +98,8 @@ bird_down = [
 
 files = {
     "dino.svg":     to_svg([dino_f1, dino_f2], "#eef1f7"),
-    "cactus_s.svg": to_svg([cactus_s], "#3ce0d0"),
-    "cactus_l.svg": to_svg([cactus_l], "#3ce0d0"),
+    "cactus_s.svg": to_svg([cactus_s], "#3ddc84"),
+    "cactus_l.svg": to_svg([cactus_l], "#3ddc84"),
     "cloud.svg":    to_svg([cloud], "#c9d2ff"),
     "bird.svg":     to_svg([bird_up, bird_down], "#c084fc"),
 }

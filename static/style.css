@@ -460,10 +460,34 @@ html.light .list-word { -webkit-text-fill-color: transparent; }
     width: 78px;
     height: 78px;
     z-index: 50;
-    cursor: pointer;
+    cursor: grab;
+    touch-action: none;
     filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35));
     will-change: left, top;
 }
+.mascot.dragging {
+    cursor: grabbing;
+    filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.45));
+    transform: scale(1.08);
+    transition: transform 0.12s ease, filter 0.12s ease;
+}
+/* pixel sparkle trail dropped behind Cappy as he flies */
+.capy-trail {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    z-index: 49;               /* just under the mascot (z-index 50) */
+    pointer-events: none;
+    image-rendering: pixelated;
+    border-radius: 1px;
+    box-shadow: 0 0 6px currentColor;
+    animation: capyTrail 0.75s ease-out forwards;
+}
+@keyframes capyTrail {
+    0%   { opacity: 0.9; transform: scale(1); }
+    100% { opacity: 0;   transform: scale(0.2) translateY(6px); }
+}
+
 .capy-wrap {
     --dir: 1;
     position: relative;
@@ -737,8 +761,9 @@ nav::after {
 /* respect users who prefer less motion — calm the ambient loops */
 @media (prefers-reduced-motion: reduce) {
     body::before,
-    .capy-frame, .capy-wrap,
+    .capy-frame, .capy-wrap, .capy-trail,
     nav h1, .list-word, .flashcard-front h2 { animation: none !important; }
+    .capy-trail { display: none; }
 }
 
 /* ============================================================
@@ -806,13 +831,13 @@ nav::after {
 .px-dino {
     position: absolute;
     left: 7%; bottom: 24px;
-    width: 64px; height: 64px;
-    background: url("pixel/dino.svg") 0 0 / 128px 64px no-repeat;
+    width: 46px; height: 46px;
+    background: url("pixel/dino.svg") 0 0 / 92px 46px no-repeat;
     z-index: 3;
     filter: drop-shadow(0 0 7px rgba(34, 211, 238, 0.30)) drop-shadow(0 4px 3px rgba(0, 0, 0, 0.5));
     animation: dinoRun 0.34s steps(2) infinite, dinoJump 1.5s linear infinite 0.37s;
 }
-@keyframes dinoRun { to { background-position-x: -128px; } }
+@keyframes dinoRun { to { background-position-x: -92px; } }
 /* rise decelerates to the apex, fall accelerates (gravity), then rests on the ground */
 @keyframes dinoJump {
     0%, 6%    { transform: translateY(0);     animation-timing-function: cubic-bezier(0.12, 0.62, 0.3, 1); }
@@ -827,7 +852,7 @@ nav::after {
     width: 28px; height: 44px;
     background: url("pixel/cactus_s.svg") center bottom / contain no-repeat;
     z-index: 2;
-    filter: drop-shadow(0 0 5px rgba(60, 224, 208, 0.28)) drop-shadow(0 3px 2px rgba(0, 0, 0, 0.4));
+    filter: drop-shadow(0 0 5px rgba(61, 220, 132, 0.32)) drop-shadow(0 3px 2px rgba(0, 0, 0, 0.4));
     animation: pxObstacle 3s linear infinite;
 }
 .px-cactus.big {
