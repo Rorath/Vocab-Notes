@@ -252,7 +252,13 @@ function launchConfetti() {
 document.addEventListener("DOMContentLoaded", () => {
     if (typeof WORDS === "undefined" || WORDS.length === 0) return;
 
-    let deck = [...WORDS];
+    // A word is testable only if it has something to reveal on the back —
+    // an English or Chinese definition. Examples alone don't count.
+    const hasDefinition = (w) =>
+        ((w.english_defs || []).length > 0) || !!(w.chinese_def && w.chinese_def.trim());
+
+    let deck = WORDS.filter(hasDefinition);
+    const setAside = WORDS.filter((w) => !hasDefinition(w));
     let index = 0;
 
     const card = document.getElementById("flashcard");
@@ -264,6 +270,38 @@ document.addEventListener("DOMContentLoaded", () => {
     const sentenceBlock = document.getElementById("sentence-block");
     const chineseBlock = document.getElementById("chinese-block");
     const currentIndexEl = document.getElementById("current-index");
+    const totalEl = document.getElementById("total");
+
+    // Show the words that were pulled out of the deck (no definition yet).
+    const asideEl = document.getElementById("set-aside");
+    const asideList = document.getElementById("set-aside-list");
+    if (asideEl && asideList && setAside.length) {
+        const countEl = document.getElementById("set-aside-count");
+        if (countEl) countEl.textContent = setAside.length;
+        setAside.forEach((w) => {
+            const li = document.createElement("li");
+            const a = document.createElement("a");
+            a.href = "/edit/" + w.id;
+            a.textContent = w.word;
+            li.appendChild(a);
+            asideList.appendChild(li);
+        });
+        asideEl.hidden = false;
+    }
+
+    // If every word was set aside, there's nothing to flip through.
+    if (deck.length === 0) {
+        const emptyEl = document.getElementById("deck-empty");
+        if (emptyEl) emptyEl.hidden = false;
+        if (card) card.hidden = true;
+        const controls = document.querySelector(".learn-controls");
+        if (controls) controls.hidden = true;
+        if (totalEl) totalEl.textContent = "0";
+        if (currentIndexEl) currentIndexEl.textContent = "0";
+        return;
+    }
+
+    if (totalEl) totalEl.textContent = deck.length;
 
     function render() {
         const w = deck[index];
@@ -363,6 +401,71 @@ document.addEventListener("DOMContentLoaded", () => {
             stack.style.height = items[i].offsetHeight + "px";
         }, 10000);
     });
+});
+
+// ---- Word grid: multi-select words and move them into one group ----
+document.addEventListener("DOMContentLoaded", () => {
+    const toggle = document.getElementById("select-toggle");
+    const bar = document.getElementById("bulk-form");
+    if (!toggle || !bar) return;
+
+    const checks = [...document.querySelectorAll(".card-check")];
+    const countEl = document.getElementById("bulk-n");
+    const applyBtn = document.getElementById("bulk-apply");
+    const cancelBtn = document.getElementById("bulk-cancel");
+    const allBtn = document.getElementById("bulk-all");
+
+    const selected = () => checks.filter((c) => c.checked);
+
+    function refresh() {
+        const n = selected().length;
+        countEl.textContent = n;
+        applyBtn.disabled = n === 0;
+        allBtn.textContent = n === checks.length ? "Clear all" : "Select all";
+    }
+
+    function setMode(on) {
+        document.body.classList.toggle("selecting", on);
+        toggle.classList.toggle("active", on);
+        toggle.textContent = on ? "✕ Done" : "☑︎ Select";
+        if (!on) {
+            checks.forEach((c) => { c.checked = false; });
+            checks.forEach((c) => c.closest("[data-word-card]").classList.remove("is-selected"));
+            refresh();
+        }
+    }
+
+    toggle.addEventListener("click", () => setMode(!document.body.classList.contains("selecting")));
+    cancelBtn.addEventListener("click", () => setMode(false));
+
+    allBtn.addEventListener("click", () => {
+        const target = selected().length !== checks.length;
+        checks.forEach((c) => {
+            c.checked = target;
+            c.closest("[data-word-card]").classList.toggle("is-selected", target);
+        });
+        refresh();
+    });
+
+    // In select mode, clicking anywhere on a card toggles its checkbox
+    document.querySelectorAll("[data-word-card]").forEach((card) => {
+        card.addEventListener("click", (e) => {
+            if (!document.body.classList.contains("selecting")) return;
+            if (e.target.closest("a, button, .actions")) return; // let real controls work
+            const check = card.querySelector(".card-check");
+            if (!check) return;
+            if (e.target !== check) check.checked = !check.checked;
+            card.classList.toggle("is-selected", check.checked);
+            refresh();
+        });
+    });
+
+    checks.forEach((c) => c.addEventListener("change", () => {
+        c.closest("[data-word-card]").classList.toggle("is-selected", c.checked);
+        refresh();
+    }));
+
+    refresh();
 });
 
 // ---- Add/Edit form: dynamic multi-input rows (definitions & examples) ----

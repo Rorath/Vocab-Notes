@@ -2,7 +2,8 @@ import json
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from database import (
     init_db, add_word, get_all_words, get_word, delete_word, update_word,
-    get_categories, get_ungrouped_words, get_group_summary,
+    get_categories, get_ungrouped_words, get_group_summary, set_words_category,
+    find_word_by_name,
 )
 
 app = Flask(__name__)
@@ -47,7 +48,15 @@ def words():
         current_category=category,
         ungrouped=ungrouped,
         title=title,
+        categories=get_categories(),
     )
+
+@app.route("/bulk-group", methods=["POST"])
+def bulk_group():
+    ids = request.form.getlist("ids", type=int)
+    category = request.form.get("category", "").strip()
+    set_words_category(ids, category)
+    return _redirect_after_save(category)
 
 @app.route("/list")
 def collection():
@@ -69,6 +78,20 @@ def add():
         chinese_def = request.form.get("chinese_def", "").strip()
         examples = [e.strip() for e in request.form.getlist("examples") if e.strip()]
         category = request.form.get("category", "").strip()
+        existing = find_word_by_name(word)
+        if existing:
+            return render_template(
+                "add.html",
+                categories=get_categories(),
+                error='“%s” is already in your vocabulary. '
+                      'Edit the existing entry instead of adding a duplicate.' % existing["word"],
+                existing_id=existing["id"],
+                form_word=word,
+                english_defs=english_defs,
+                chinese_def=chinese_def,
+                examples=examples,
+                category=category,
+            )
         add_word(word, english_defs, chinese_def, examples, category)
         return _redirect_after_save(category)
     return render_template("add.html", categories=get_categories())
@@ -77,12 +100,27 @@ def add():
 def edit(word_id):
     word = get_word(word_id)
     if request.method == "POST":
+        new_word = request.form["word"].strip()
         category = request.form.get("category", "").strip()
         english_defs = [d.strip() for d in request.form.getlist("english_def") if d.strip()]
         examples = [e.strip() for e in request.form.getlist("examples") if e.strip()]
+        clash = find_word_by_name(new_word, exclude_id=word_id)
+        if clash:
+            return render_template(
+                "add.html",
+                word=word,
+                english_defs=english_defs,
+                examples=examples,
+                categories=get_categories(),
+                error='“%s” already exists as another entry, so this rename '
+                      'would create a duplicate.' % clash["word"],
+                form_word=new_word,
+                chinese_def=request.form.get("chinese_def", "").strip(),
+                category=category,
+            )
         update_word(
             word_id,
-            request.form["word"].strip(),
+            new_word,
             english_defs,
             request.form.get("chinese_def", "").strip(),
             examples,

@@ -33,6 +33,11 @@
                 <span id="current-index">1</span> / <span id="total">{{ words|length }}</span>
             </div>
 
+            <div class="deck-empty" id="deck-empty" hidden>
+                <p>None of these words have a definition yet, so there's nothing to test.</p>
+                <p class="hint-inline">Add an English or Chinese definition to start studying them.</p>
+            </div>
+
             <div class="flashcard" id="flashcard">
                 <div class="flashcard-inner">
                     <div class="flashcard-front">
@@ -62,6 +67,12 @@
                 <button id="known-btn" class="btn-known">✓ I knew it!</button>
                 <button id="next-btn" class="btn-primary">Next →</button>
             </div>
+
+            <aside class="set-aside" id="set-aside" hidden>
+                <h3>Set aside · no definition yet <span class="set-aside-count" id="set-aside-count"></span></h3>
+                <p class="hint-inline">These aren't in the deck above. Add a definition and they'll join the test.</p>
+                <ul id="set-aside-list"></ul>
+            </aside>
         </div>
 
         <script>

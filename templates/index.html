@@ -17,19 +17,25 @@
         <div class="list-head">
             <h2 class="list-title">{{ title }}</h2>
             {% if words %}
-            <form class="toolbar" method="get" action="{{ url_for('words') }}">
-                {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
-                {% if ungrouped %}<input type="hidden" name="ungrouped" value="1">{% endif %}
-                <label class="toolbar-field">
-                    Sort
-                    <select name="sort" onchange="this.form.submit()">
-                        <option value="recent" {{ 'selected' if current_sort == 'recent' }}>Newest first</option>
-                        <option value="oldest" {{ 'selected' if current_sort == 'oldest' }}>Oldest first</option>
-                        <option value="az" {{ 'selected' if current_sort == 'az' }}>A → Z</option>
-                        <option value="za" {{ 'selected' if current_sort == 'za' }}>Z → A</option>
-                    </select>
-                </label>
-            </form>
+            <div class="toolbar">
+                <form method="get" action="{{ url_for('words') }}">
+                    {% if current_category %}<input type="hidden" name="category" value="{{ current_category }}">{% endif %}
+                    {% if ungrouped %}<input type="hidden" name="ungrouped" value="1">{% endif %}
+                    <label class="toolbar-field">
+                        Sort
+                        <select name="sort" onchange="this.form.submit()">
+                            <option value="recent" {{ 'selected' if current_sort == 'recent' }}>Newest first</option>
+                            <option value="oldest" {{ 'selected' if current_sort == 'oldest' }}>Oldest first</option>
+                            <option value="az" {{ 'selected' if current_sort == 'az' }}>A → Z</option>
+                            <option value="za" {{ 'selected' if current_sort == 'za' }}>Z → A</option>
+                        </select>
+                    </label>
+                </form>
+                <div class="toolbar-field select-field">
+                    <span class="toolbar-label-spacer" aria-hidden="true">Select</span>
+                    <button type="button" id="select-toggle" class="btn-secondary select-toggle">☑︎ Select</button>
+                </div>
+            </div>
             {% endif %}
         </div>
 
@@ -37,7 +43,11 @@
             <p class="word-count">{{ words|length }} word{% if words|length != 1 %}s{% endif %}</p>
             <div class="word-grid">
                 {% for w in words %}
-                <div class="word-card" style="animation-delay: {{ loop.index0 * 0.06 }}s">
+                <div class="word-card" data-word-card style="animation-delay: {{ loop.index0 * 0.06 }}s">
+                    <label class="card-select" aria-label="Select {{ w.word }}">
+                        <input type="checkbox" class="card-check" name="ids" value="{{ w.id }}" form="bulk-form">
+                        <span class="card-check-box"></span>
+                    </label>
                     <div class="word-header">
                         <div class="word-title">
                             <h2>{{ w.word }}</h2>
@@ -91,6 +101,20 @@
                 <p>No words in this group yet.</p>
                 <a href="{{ url_for('add') }}" class="btn-primary">Add a word</a>
             </div>
+        {% endif %}
+
+        {% if words %}
+        <form id="bulk-form" class="bulk-bar" method="POST" action="{{ url_for('bulk_group') }}">
+            <div class="bulk-count"><span id="bulk-n">0</span> selected</div>
+            <button type="button" id="bulk-all" class="bulk-link">Select all</button>
+            <input type="text" name="category" class="bulk-input" list="bulk-groups"
+                   placeholder="Group name…" autocomplete="off" required>
+            <datalist id="bulk-groups">
+                {% for c in categories %}<option value="{{ c }}">{% endfor %}
+            </datalist>
+            <button type="submit" id="bulk-apply" class="btn-primary" disabled>Move to group</button>
+            <button type="button" id="bulk-cancel" class="bulk-link">Cancel</button>
+        </form>
         {% endif %}
     </main>
 

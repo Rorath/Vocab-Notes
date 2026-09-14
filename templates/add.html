@@ -15,10 +15,17 @@
     <main>
         <div class="form-wrap">
             <h2>{{ "Edit Word" if word else "Add a New Word" }}</h2>
+            {% if error %}
+            <div class="form-error" role="alert">
+                <span class="form-error-icon">⚠️</span>
+                <span>{{ error }}</span>
+                {% if existing_id %}<a class="form-error-link" href="{{ url_for('edit', word_id=existing_id) }}">Open it →</a>{% endif %}
+            </div>
+            {% endif %}
             <form method="POST" action="{{ url_for('edit', word_id=word.id) if word else url_for('add') }}">
                 <label>
                     Word
-                    <input type="text" name="word" value="{{ word.word if word else '' }}" required autofocus>
+                    <input type="text" name="word" value="{{ form_word if form_word is defined else (word.word if word else '') }}" required autofocus>
                 </label>
                 <div class="examples-field">
                     <span class="field-label">English Definition <span class="optional">(optional — add one or more)</span></span>
@@ -36,12 +43,12 @@
                 </div>
                 <label>
                     Ch Definition <span class="optional">(optional, Traditional Chinese)</span>
-                    <textarea name="chinese_def" rows="2">{{ word.chinese_def if word else '' }}</textarea>
+                    <textarea name="chinese_def" rows="2">{{ chinese_def if chinese_def is defined else (word.chinese_def if word else '') }}</textarea>
                 </label>
                 <label>
                     Group / Category <span class="optional">(optional — topic or source)</span>
                     <input type="text" name="category" list="cat-list" placeholder="e.g. TOEFL, News, Business"
-                           value="{{ word.category if word and word.category else '' }}">
+                           value="{{ category if category is defined else (word.category if word and word.category else '') }}">
                     <datalist id="cat-list">
                         {% for c in categories %}<option value="{{ c }}">{% endfor %}
                     </datalist>

@@ -114,6 +114,19 @@ def get_group_summary():
         "groups": [{"name": r["name"], "count": r["count"]} for r in rows],
     }
 
+def find_word_by_name(word, exclude_id=None):
+    """Return an existing row that matches this word (case-insensitive), or None."""
+    word = (word or "").strip()
+    if not word:
+        return None
+    query = "SELECT * FROM words WHERE word = ? COLLATE NOCASE"
+    params = [word]
+    if exclude_id is not None:
+        query += " AND id != ?"
+        params.append(exclude_id)
+    with get_conn() as conn:
+        return conn.execute(query, params).fetchone()
+
 def get_word(word_id):
     with get_conn() as conn:
         return conn.execute("SELECT * FROM words WHERE id = ?", (word_id,)).fetchone()
@@ -121,6 +134,19 @@ def get_word(word_id):
 def delete_word(word_id):
     with get_conn() as conn:
         conn.execute("DELETE FROM words WHERE id = ?", (word_id,))
+
+def set_words_category(ids, category):
+    """Assign the same category/group to a batch of words in one shot."""
+    ids = [i for i in (ids or []) if i]
+    if not ids:
+        return 0
+    placeholders = ",".join("?" * len(ids))
+    with get_conn() as conn:
+        cur = conn.execute(
+            f"UPDATE words SET category = ? WHERE id IN ({placeholders})",
+            [category, *ids],
+        )
+        return cur.rowcount
 
 def update_word(word_id, word, english_defs, chinese_def, examples, category=""):
     defs = [d for d in (english_defs or []) if d]
