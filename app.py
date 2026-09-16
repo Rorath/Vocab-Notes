@@ -1,4 +1,5 @@
 import json
+import os
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 from database import (
     init_db, add_word, get_all_words, get_word, delete_word, update_word,
@@ -169,4 +170,6 @@ def api_words():
     ])
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    # Local dev defaults to 5001; hosts that inject a PORT env var override it.
+    port = int(os.environ.get("PORT", 5001))
+    app.run(debug=True, host="0.0.0.0", port=port)
