@@ -74,11 +74,15 @@
             </div>
 
             <div class="learn-controls">
-                <button id="prev-btn" class="btn-secondary">← Prev</button>
-                <button id="shuffle-btn" class="btn-secondary">Shuffle</button>
-                <button id="idk-btn" class="btn-idk">✗ I don't know</button>
-                <button id="known-btn" class="btn-known">✓ I knew it!</button>
-                <button id="next-btn" class="btn-primary">Next →</button>
+                <div class="answer-row">
+                    <button id="idk-btn" class="btn-idk">✗ I don't know</button>
+                    <button id="known-btn" class="btn-known">✓ I knew it!</button>
+                </div>
+                <div class="nav-row">
+                    <button id="prev-btn" class="btn-nav">← Prev</button>
+                    <button id="shuffle-btn" class="btn-nav">⇄ Shuffle</button>
+                    <button id="next-btn" class="btn-nav">Next →</button>
+                </div>
             </div>
 
             <aside class="set-aside" id="set-aside" hidden>

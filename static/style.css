@@ -314,8 +314,25 @@ input:focus, textarea:focus {
 .hint { position: absolute; top: 22px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; }
 .flashcard-back { transform: rotateY(180deg); text-align: left; gap: 4px; overflow-y: auto; border-color: rgba(34, 211, 238, 0.35); box-shadow: var(--glow-cyan); }
 
-.learn-controls { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-.learn-controls button { padding: 11px 22px; }
+.learn-controls { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 4px; }
+/* Primary answer pair — equal width, side by side, the focal action */
+.answer-row { display: flex; gap: 12px; width: 100%; max-width: 420px; }
+.answer-row .btn-idk, .answer-row .btn-known { flex: 1; padding: 15px 20px; font-size: 14px; }
+/* Quiet navigation pills below the answers */
+.nav-row { display: flex; gap: 8px; }
+.btn-nav {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--muted);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 9px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.18s ease;
+}
+.btn-nav:hover { background: rgba(255, 255, 255, 0.09); color: var(--text); transform: translateY(-1px); }
 .btn-known {
     background: linear-gradient(90deg, #22d3ee, #34d399);
     color: #05221f;
