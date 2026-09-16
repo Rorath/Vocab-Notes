@@ -119,12 +119,10 @@ nav h1 {
 main { max-width: 920px; margin: 0 auto; padding: 36px 32px 140px; }
 .word-count { color: var(--muted); font-size: 14px; margin-bottom: 22px; }
 
-/* Word grid — masonry: equal width, each card as tall as its own content */
-.word-grid { column-width: 300px; column-gap: 20px; }
+/* Word grid — reading order: cards flow left→right, then wrap to the next row */
+.word-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 .word-card {
-    break-inside: avoid;
-    -webkit-column-break-inside: avoid;
-    margin: 0 0 20px;
+    margin: 0;
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: var(--radius);
@@ -332,6 +330,48 @@ input:focus, textarea:focus {
     transition: all 0.18s ease;
 }
 .btn-known:hover { transform: translateY(-2px); box-shadow: 0 0 32px rgba(34, 211, 238, 0.7); }
+
+.btn-idk {
+    background: linear-gradient(90deg, #ff9d6b, #f472b6);
+    color: #2a0f16;
+    box-shadow: 0 0 20px rgba(244, 114, 182, 0.35);
+    font-weight: 700;
+    border: none;
+    border-radius: 11px;
+    padding: 11px 22px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    transition: all 0.18s ease;
+}
+.btn-idk:hover { transform: translateY(-2px); box-shadow: 0 0 30px rgba(244, 114, 182, 0.6); }
+
+/* Daily goal bar (flashcard trainer) */
+.daily-goal { max-width: 420px; margin: 0 auto 22px; }
+.goal-bar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.goal-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, #22d3ee, #34d399);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+.daily-goal.goal-done .goal-fill { background: linear-gradient(90deg, #34d399, #a855f7); }
+.goal-meta {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    margin-top: 8px; font-size: 13px; color: var(--muted); font-weight: 600;
+}
+.goal-edit-wrap { display: inline-flex; align-items: center; gap: 8px; }
+.goal-edit-btn {
+    background: none; border: none; color: var(--cyan); cursor: pointer;
+    font-family: inherit; font-size: 12px; font-weight: 700; padding: 2px 4px;
+    text-decoration: underline; text-underline-offset: 3px;
+}
+.goal-input {
+    width: 70px; padding: 4px 8px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--card); color: inherit;
+    font-family: inherit; font-size: 13px;
+}
+.review-card .group-icon { filter: drop-shadow(0 0 8px rgba(255, 157, 107, 0.6)); }
 
 .hint-inline { color: var(--muted); font-size: 13px; margin-top: 6px; }
 
@@ -878,7 +918,7 @@ html.light .dock-sep { background: rgba(20, 20, 50, 0.12); }
 @media (max-width: 600px) {
     nav { flex-direction: column; gap: 12px; padding: 16px; }
     main { padding: 22px 22px 130px; }
-    .word-grid { column-width: auto; column-count: 1; }
+    .word-grid { grid-template-columns: 1fr; }
     .mascot { width: 80px; height: 75px; bottom: 92px; right: 14px; }
 }
 

@@ -50,6 +50,13 @@
                     <span class="group-count">{{ summary.ungrouped }} word{% if summary.ungrouped != 1 %}s{% endif %}</span>
                 </a>
                 {% endif %}
+                {% if summary.unfamiliar %}
+                <a class="group-card review-card" href="{{ url_for('words', review=1) }}" style="animation-delay: {{ (summary.groups|length + 2) * 0.06 }}s">
+                    <div class="group-icon">🔥</div>
+                    <h2>Needs review</h2>
+                    <span class="group-count">{{ summary.unfamiliar }} word{% if summary.unfamiliar != 1 %}s{% endif %}</span>
+                </a>
+                {% endif %}
             </div>
         {% else %}
             <div class="empty">

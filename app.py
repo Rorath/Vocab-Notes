@@ -4,7 +4,8 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from database import (
     init_db, add_word, get_all_words, get_word, delete_word, update_word,
     get_categories, get_ungrouped_words, get_group_summary, set_words_category,
-    find_word_by_name,
+    find_word_by_name, get_unfamiliar_words, record_result,
+    get_today_count, get_daily_goal, set_daily_goal,
 )
 
 app = Flask(__name__)
@@ -36,7 +37,11 @@ def words():
     sort = request.args.get("sort", "recent")
     category = request.args.get("category") or None
     ungrouped = bool(request.args.get("ungrouped"))
-    if ungrouped:
+    review = bool(request.args.get("review"))
+    if review:
+        word_list = get_unfamiliar_words(sort)
+        title = "Needs review"
+    elif ungrouped:
         word_list = get_ungrouped_words(sort)
         title = "Ungrouped"
     else:
@@ -48,6 +53,7 @@ def words():
         current_sort=sort,
         current_category=category,
         ungrouped=ungrouped,
+        review=review,
         title=title,
         categories=get_categories(),
     )
@@ -157,7 +163,33 @@ def learn():
         words_json=words_json,
         categories=get_categories(),
         current_category=category,
+        today_count=get_today_count(),
+        daily_goal=get_daily_goal(),
     )
+
+@app.route("/api/result", methods=["POST"])
+def api_result():
+    """Record a flashcard answer: {id, known: bool}. Updates familiarity + today's tally."""
+    data = request.get_json(silent=True) or {}
+    try:
+        word_id = int(data.get("id"))
+    except (TypeError, ValueError):
+        return jsonify({"error": "bad id"}), 400
+    fam = record_result(word_id, bool(data.get("known")))
+    if fam is None:
+        return jsonify({"error": "not found"}), 404
+    return jsonify({
+        "familiarity": fam,
+        "today": get_today_count(),
+        "goal": get_daily_goal(),
+    })
+
+@app.route("/api/goal", methods=["POST"])
+def api_goal():
+    """Set (or clear, with 0) the optional words-per-day goal."""
+    data = request.get_json(silent=True) or {}
+    goal = set_daily_goal(data.get("goal", 0))
+    return jsonify({"goal": goal, "today": get_today_count()})
 
 @app.route("/api/words")
 def api_words():

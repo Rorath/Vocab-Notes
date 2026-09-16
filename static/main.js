@@ -334,14 +334,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
     card.addEventListener("click", () => card.classList.toggle("flipped"));
 
-    document.getElementById("next-btn").addEventListener("click", () => {
-        index = (index + 1) % deck.length;
-        render();
-    });
+    // ---- Weighted selection: less-familiar words surface more often --------
+    const famOf = (w) => (typeof w.familiarity === "number" ? w.familiarity : 0);
+    // Weight falls as familiarity climbs; a missed word (negative score) is many
+    // times more likely to be drawn than a well-known one.
+    const weightOf = (w) => Math.max(1, 7 - famOf(w));
+
+    function weightedIndex(exclude) {
+        if (deck.length <= 1) return 0;
+        let total = 0;
+        const weights = deck.map((w, i) => {
+            const wt = i === exclude ? 0 : weightOf(w);
+            total += wt;
+            return wt;
+        });
+        let r = Math.random() * total;
+        for (let i = 0; i < deck.length; i++) {
+            r -= weights[i];
+            if (r < 0) return i;
+        }
+        return (exclude + 1) % deck.length;
+    }
+
+    const history = [];
+    function goTo(next) { history.push(index); index = next; render(); }
+    function advance() { goTo(weightedIndex(index)); }
+
+    // Record how an answer went and refresh the daily-goal bar from the reply.
+    function postResult(known) {
+        const w = deck[index];
+        w.familiarity = famOf(w) + (known ? 1 : -1);  // reflect it locally at once
+        fetch("/api/result", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: w.id, known: known }),
+        })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((data) => {
+                if (!data) return;
+                DAILY.today = data.today;
+                DAILY.goal = data.goal;
+                renderGoal();
+            })
+            .catch(() => {});
+    }
+
+    document.getElementById("next-btn").addEventListener("click", advance);
 
     document.getElementById("prev-btn").addEventListener("click", () => {
-        index = (index - 1 + deck.length) % deck.length;
-        render();
+        if (history.length) { index = history.pop(); render(); }
+        else { index = (index - 1 + deck.length) % deck.length; render(); }
     });
 
     document.getElementById("shuffle-btn").addEventListener("click", () => {
@@ -349,19 +391,27 @@ document.addEventListener("DOMContentLoaded", () => {
             const j = Math.floor(Math.random() * (i + 1));
             [deck[i], deck[j]] = [deck[j], deck[i]];
         }
-        index = 0;
+        history.length = 0;
+        index = weightedIndex(-1);
         render();
     });
 
     const knownBtn = document.getElementById("known-btn");
     if (knownBtn) {
         knownBtn.addEventListener("click", () => {
+            postResult(true);
             launchConfetti();
             mascotCheer();
-            setTimeout(() => {
-                index = (index + 1) % deck.length;
-                render();
-            }, 450);
+            setTimeout(advance, 450);
+        });
+    }
+
+    const idkBtn = document.getElementById("idk-btn");
+    if (idkBtn) {
+        idkBtn.addEventListener("click", () => {
+            postResult(false);
+            mascotSay("No worries — I'll bring this one back around.");
+            advance();
         });
     }
 
@@ -371,8 +421,70 @@ document.addEventListener("DOMContentLoaded", () => {
         else if (e.key === "ArrowLeft") document.getElementById("prev-btn").click();
         else if (e.key === " ") { e.preventDefault(); card.classList.toggle("flipped"); }
         else if (e.key === "Enter" && knownBtn) knownBtn.click();
+        else if ((e.key === "x" || e.key === "X") && idkBtn) idkBtn.click();
     });
 
+    // ---- Daily goal bar ----------------------------------------------------
+    const goalWrap = document.getElementById("daily-goal");
+    const goalFill = document.getElementById("goal-fill");
+    const goalText = document.getElementById("goal-text");
+    const goalInput = document.getElementById("goal-input");
+    const goalEdit = document.getElementById("goal-edit");
+
+    function renderGoal() {
+        if (!goalWrap) return;
+        const today = DAILY.today || 0;
+        const goal = DAILY.goal || 0;
+        if (goal > 0) {
+            const pct = Math.min(100, Math.round((today / goal) * 100));
+            goalFill.style.width = pct + "%";
+            goalWrap.classList.toggle("goal-done", today >= goal);
+            goalText.textContent = today >= goal
+                ? `🎉 Daily goal reached — ${today}/${goal} today`
+                : `${today} / ${goal} words today`;
+            goalEdit.textContent = "Edit";
+        } else {
+            goalFill.style.width = "0%";
+            goalWrap.classList.remove("goal-done");
+            goalText.textContent = today
+                ? `${today} studied today · no goal set`
+                : "No daily goal set";
+            goalEdit.textContent = "Set daily goal";
+        }
+    }
+
+    function saveGoal() {
+        if (!goalInput || goalInput.hidden) return;
+        const val = Math.max(0, parseInt(goalInput.value, 10) || 0);
+        goalInput.hidden = true;
+        fetch("/api/goal", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ goal: val }),
+        })
+            .then((r) => (r.ok ? r.json() : null))
+            .then((data) => {
+                if (!data) return;
+                DAILY.goal = data.goal;
+                DAILY.today = data.today;
+                renderGoal();
+            })
+            .catch(() => {});
+    }
+
+    if (goalEdit && goalInput) {
+        goalEdit.addEventListener("click", () => {
+            goalInput.hidden = false;
+            goalInput.value = DAILY.goal || "";
+            goalInput.focus();
+        });
+        goalInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); saveGoal(); }
+        });
+        goalInput.addEventListener("blur", saveGoal);
+    }
+
+    renderGoal();
     render();
 });
 

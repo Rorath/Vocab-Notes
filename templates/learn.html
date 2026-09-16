@@ -33,6 +33,18 @@
                 <span id="current-index">1</span> / <span id="total">{{ words|length }}</span>
             </div>
 
+            <div class="daily-goal" id="daily-goal">
+                <div class="goal-bar"><div class="goal-fill" id="goal-fill"></div></div>
+                <div class="goal-meta">
+                    <span id="goal-text"></span>
+                    <span class="goal-edit-wrap">
+                        <input type="number" min="0" id="goal-input" class="goal-input" hidden
+                               placeholder="0" aria-label="Words per day goal">
+                        <button type="button" id="goal-edit" class="goal-edit-btn">Set daily goal</button>
+                    </span>
+                </div>
+            </div>
+
             <div class="deck-empty" id="deck-empty" hidden>
                 <p>None of these words have a definition yet, so there's nothing to test.</p>
                 <p class="hint-inline">Add an English or Chinese definition to start studying them.</p>
@@ -64,6 +76,7 @@
             <div class="learn-controls">
                 <button id="prev-btn" class="btn-secondary">← Prev</button>
                 <button id="shuffle-btn" class="btn-secondary">Shuffle</button>
+                <button id="idk-btn" class="btn-idk">✗ I don't know</button>
                 <button id="known-btn" class="btn-known">✓ I knew it!</button>
                 <button id="next-btn" class="btn-primary">Next →</button>
             </div>
@@ -77,6 +90,7 @@
 
         <script>
             const WORDS = {{ words_json|safe }};
+            const DAILY = { today: {{ today_count }}, goal: {{ daily_goal }} };
         </script>
         {% else %}
         <div class="empty">
