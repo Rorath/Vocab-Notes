@@ -15,7 +15,7 @@
     <main>
         <div class="list-head">
             <h2 class="list-title">Word List</h2>
-            {% if words %}
+            {% if words or search %}
             <form class="toolbar" method="get" action="{{ url_for('collection') }}">
                 <label class="toolbar-field">
                     Sort
@@ -26,6 +26,12 @@
                         <option value="za" {{ 'selected' if current_sort == 'za' }}>Z → A</option>
                     </select>
                 </label>
+                <label class="toolbar-field search-field">
+                    Search
+                    <input type="search" name="q" value="{{ search }}" placeholder="Word or meaning" autocomplete="off">
+                </label>
+                <button type="submit" class="btn-secondary search-submit">Search</button>
+                {% if search %}<a class="clear-search" href="{{ url_for('collection', sort=current_sort) }}">Clear</a>{% endif %}
             </form>
             {% endif %}
         </div>
@@ -34,7 +40,7 @@
             <p class="word-count">{{ words|length }} word{% if words|length != 1 %}s{% endif %} collected</p>
             <div class="word-list">
                 {% for w in words %}
-                <div class="list-row" style="animation-delay: {{ loop.index0 * 0.04 }}s">
+                <div class="list-row" style="animation-delay: {{ [loop.index0 * 0.04, 0.32]|min }}s">
                     <div class="list-cell list-word-cell">
                         <span class="list-word">{{ w.word }}</span>
                         {% if w.category %}<a class="category-chip" href="{{ url_for('words', category=w.category) }}">{{ w.category }}</a>{% endif %}
@@ -45,7 +51,7 @@
                     </div>
                     <div class="list-cell list-action-cell">
                         <a href="{{ url_for('edit', word_id=w.id) }}" class="btn-edit">Edit</a>
-                        <form method="POST" action="{{ url_for('delete', word_id=w.id) }}" onsubmit="return confirm('Delete {{ w.word }}?')">
+                        <form method="POST" action="{{ url_for('delete', word_id=w.id) }}" onsubmit="return confirm({{ ('Delete ' ~ w.word ~ '?')|tojson|forceescape }})">
                             <button type="submit" class="btn-delete">Delete</button>
                         </form>
                     </div>
@@ -54,8 +60,9 @@
             </div>
         {% else %}
             <div class="empty">
-                <p>No words collected yet.</p>
-                <a href="{{ url_for('add') }}" class="btn-primary">Add your first word</a>
+                <p>{{ 'No words match your search.' if search else 'No words collected yet.' }}</p>
+                {% if search %}<a href="{{ url_for('collection') }}" class="btn-secondary">Clear search</a>
+                {% else %}<a href="{{ url_for('add') }}" class="btn-primary">Add your first word</a>{% endif %}
             </div>
         {% endif %}
     </main>

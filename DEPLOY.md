@@ -1,9 +1,16 @@
 # Deploying Vocab-Notes (so your phone can reach it 24/7)
 
-The goal: run the app on a machine that's always on, so you open a URL on your
-phone without your Mac being awake. We use **PythonAnywhere** — its free tier has
-a *persistent disk*, which matters because this app stores your words in a SQLite
-file (`vocab.db`). On most other free hosts that file gets wiped on every restart.
+The goal: open the app on your phone without your Mac being awake. This guide uses
+**PythonAnywhere** because the SQLite file (`vocab.db`) needs persistent storage.
+New PythonAnywhere free accounts have a web app that expires after one month;
+check the [current free account limits](https://help.pythonanywhere.com/pages/FreeAccountsFeatures/)
+before relying on it for uninterrupted access.
+
+The app has no built-in sign-in. Anyone who can reach an unprotected deployment
+can view, add, edit, and delete words. Enable [PythonAnywhere web app password
+protection](https://help.pythonanywhere.com/pages/API) before uploading personal
+vocabulary. Never map the repository root as a static files directory: that would
+expose `vocab.db` if its path were guessed.
 
 ## One-time setup
 

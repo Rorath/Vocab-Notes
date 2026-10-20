@@ -1,18 +1,25 @@
 import sqlite3
 import json
+import os
+from contextlib import contextmanager
 from datetime import date
 
-DB = "vocab.db"
+DB = os.environ.get("VOCAB_DB_PATH", os.path.join(os.path.dirname(__file__), "vocab.db"))
 
 # Familiarity is a per-word score the flashcard trainer nudges up ("I knew it")
 # and down ("I don't know"). It's clamped to this range; lower = shows up more.
 FAMILIARITY_MIN = -4
 FAMILIARITY_MAX = 6
 
+@contextmanager
 def get_conn():
     conn = sqlite3.connect(DB)
     conn.row_factory = sqlite3.Row
-    return conn
+    try:
+        with conn:
+            yield conn
+    finally:
+        conn.close()
 
 def init_db():
     with get_conn() as conn:
@@ -73,13 +80,17 @@ def init_db():
                 value TEXT
             )
         """)
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_words_category ON words(category)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_words_created ON words(created_at)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_words_familiarity ON words(familiarity)")
 
 # Map sort keys -> SQL ORDER BY clauses (whitelist, so it's injection-safe)
 SORT_OPTIONS = {
-    "recent": "created_at DESC",
-    "oldest": "created_at ASC",
-    "az": "word COLLATE NOCASE ASC",
-    "za": "word COLLATE NOCASE DESC",
+    "priority": "familiarity ASC, last_seen ASC, id DESC",
+    "recent": "created_at DESC, id DESC",
+    "oldest": "created_at ASC, id ASC",
+    "az": "word COLLATE NOCASE ASC, id ASC",
+    "za": "word COLLATE NOCASE DESC, id DESC",
 }
 
 def _dump_list(items):
@@ -96,13 +107,28 @@ def add_word(word, english_defs=None, chinese_def="", examples=None, category=""
             (word, legacy, _dump_list(defs), chinese_def, _dump_list(examples), category)
         )
 
-def get_all_words(sort="recent", category=None):
+def _search_clause(search):
+    """Return a literal substring search over the visible word fields."""
+    if not search:
+        return "", []
+    pattern = "%" + search.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+    fields = ("word", "english_def", "english_defs", "chinese_def", "examples")
+    return "(" + " OR ".join(f"{field} LIKE ? ESCAPE '\\'" for field in fields) + ")", [pattern] * len(fields)
+
+def get_all_words(sort="recent", category=None, search=""):
     order = SORT_OPTIONS.get(sort, SORT_OPTIONS["recent"])
     query = "SELECT * FROM words"
+    conditions = []
     params = []
     if category:
-        query += " WHERE category = ?"
+        conditions.append("category = ?")
         params.append(category)
+    search_sql, search_params = _search_clause(search)
+    if search_sql:
+        conditions.append(search_sql)
+        params.extend(search_params)
+    if conditions:
+        query += " WHERE " + " AND ".join(conditions)
     query += f" ORDER BY {order}"
     with get_conn() as conn:
         return conn.execute(query, params).fetchall()
@@ -114,43 +140,47 @@ def get_categories():
         ).fetchall()
     return [r["category"] for r in rows]
 
-def get_ungrouped_words(sort="recent"):
+def get_ungrouped_words(sort="recent", search=""):
     order = SORT_OPTIONS.get(sort, SORT_OPTIONS["recent"])
+    search_sql, params = _search_clause(search)
+    where = "(category IS NULL OR category = '')"
+    if search_sql:
+        where += " AND " + search_sql
     with get_conn() as conn:
         return conn.execute(
-            f"SELECT * FROM words WHERE category IS NULL OR category = '' ORDER BY {order}"
+            f"SELECT * FROM words WHERE {where} ORDER BY {order}", params
         ).fetchall()
 
 def get_group_summary():
     """Return total word count, ungrouped count, and each group with its count."""
     with get_conn() as conn:
-        total = conn.execute("SELECT COUNT(*) AS n FROM words").fetchone()["n"]
-        ungrouped = conn.execute(
-            "SELECT COUNT(*) AS n FROM words WHERE category IS NULL OR category = ''"
-        ).fetchone()["n"]
-        unfamiliar = conn.execute(
-            "SELECT COUNT(*) AS n FROM words WHERE COALESCE(familiarity, 0) < 0"
-        ).fetchone()["n"]
         rows = conn.execute("""
-            SELECT category AS name, COUNT(*) AS count
+            SELECT category AS name, COUNT(*) AS count,
+                   SUM(CASE WHEN familiarity < 0 THEN 1 ELSE 0 END) AS unfamiliar
             FROM words
-            WHERE category IS NOT NULL AND category != ''
             GROUP BY category
             ORDER BY category COLLATE NOCASE
         """).fetchall()
+    total = sum(r["count"] for r in rows)
+    ungrouped = sum(r["count"] for r in rows if not r["name"])
+    unfamiliar = sum(r["unfamiliar"] for r in rows)
     return {
         "total": total,
         "ungrouped": ungrouped,
         "unfamiliar": unfamiliar,
-        "groups": [{"name": r["name"], "count": r["count"]} for r in rows],
+        "groups": [{"name": r["name"], "count": r["count"]} for r in rows if r["name"]],
     }
 
-def get_unfamiliar_words(sort="recent"):
+def get_unfamiliar_words(sort="priority", search=""):
     """Words the trainer has learned you tend to miss (familiarity below neutral)."""
-    order = SORT_OPTIONS.get(sort, SORT_OPTIONS["recent"])
+    order = SORT_OPTIONS.get(sort, SORT_OPTIONS["priority"])
+    search_sql, params = _search_clause(search)
+    where = "familiarity < 0"
+    if search_sql:
+        where += " AND " + search_sql
     with get_conn() as conn:
         return conn.execute(
-            f"SELECT * FROM words WHERE COALESCE(familiarity, 0) < 0 ORDER BY familiarity ASC, {order}"
+            f"SELECT * FROM words WHERE {where} ORDER BY {order}", params
         ).fetchall()
 
 def find_word_by_name(word, exclude_id=None):

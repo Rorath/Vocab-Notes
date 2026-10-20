@@ -1,27 +1,32 @@
-<div class="dock" id="dock">
-    <a href="{{ url_for('index') }}" class="dock-item {{ 'active' if request.endpoint in ['index', 'words'] }}">
-        <span class="dock-icon">📚</span>
+<div class="dock" id="dock" role="navigation" aria-label="Main navigation">
+    <a href="{{ url_for('index') }}" aria-label="Groups" {% if request.endpoint in ['index', 'words'] %}aria-current="page"{% endif %} class="dock-item {{ 'active' if request.endpoint in ['index', 'words'] }}">
+        <span class="dock-icon" aria-hidden="true">📚</span>
+        <span class="dock-label" aria-hidden="true">Groups</span>
         <span class="dock-tooltip">Groups</span>
         <span class="dock-dot"></span>
     </a>
-    <a href="{{ url_for('add') }}" class="dock-item {{ 'active' if request.endpoint in ['add', 'edit'] }}">
-        <span class="dock-icon">➕</span>
+    <a href="{{ url_for('add') }}" aria-label="Add word" {% if request.endpoint in ['add', 'edit'] %}aria-current="page"{% endif %} class="dock-item {{ 'active' if request.endpoint in ['add', 'edit'] }}">
+        <span class="dock-icon" aria-hidden="true">➕</span>
+        <span class="dock-label" aria-hidden="true">Add</span>
         <span class="dock-tooltip">Add Word</span>
         <span class="dock-dot"></span>
     </a>
-    <a href="{{ url_for('learn') }}" class="dock-item {{ 'active' if request.endpoint == 'learn' }}">
-        <span class="dock-icon">🎴</span>
+    <a href="{{ url_for('learn') }}" aria-label="Learn" {% if request.endpoint == 'learn' %}aria-current="page"{% endif %} class="dock-item {{ 'active' if request.endpoint == 'learn' }}">
+        <span class="dock-icon" aria-hidden="true">🎴</span>
+        <span class="dock-label" aria-hidden="true">Learn</span>
         <span class="dock-tooltip">Learn</span>
         <span class="dock-dot"></span>
     </a>
-    <a href="{{ url_for('collection') }}" class="dock-item {{ 'active' if request.endpoint == 'collection' }}">
-        <span class="dock-icon">📋</span>
+    <a href="{{ url_for('collection') }}" aria-label="Word list" {% if request.endpoint == 'collection' %}aria-current="page"{% endif %} class="dock-item {{ 'active' if request.endpoint == 'collection' }}">
+        <span class="dock-icon" aria-hidden="true">📋</span>
+        <span class="dock-label" aria-hidden="true">List</span>
         <span class="dock-tooltip">Word List</span>
         <span class="dock-dot"></span>
     </a>
     <span class="dock-sep"></span>
-    <button type="button" class="dock-item" id="theme-toggle">
-        <span class="dock-icon" id="theme-icon">🌙</span>
+    <button type="button" class="dock-item" id="theme-toggle" aria-label="Light mode" aria-pressed="false">
+        <span class="dock-icon" id="theme-icon" aria-hidden="true">🌙</span>
+        <span class="dock-label" aria-hidden="true">Theme</span>
         <span class="dock-tooltip" id="theme-tooltip">Light mode</span>
     </button>
 </div>

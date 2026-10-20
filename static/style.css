@@ -40,11 +40,6 @@ body::before {
         radial-gradient(circle at 72% 38%, rgba(34, 211, 238, 0.17), transparent 46%),
         radial-gradient(circle at 50% 78%, rgba(255, 157, 107, 0.14), transparent 46%);
     filter: blur(44px) saturate(125%);
-    animation: auroraSpin 46s linear infinite;
-}
-@keyframes auroraSpin {
-    from { transform: rotate(0deg) scale(1.08); }
-    to   { transform: rotate(360deg) scale(1.08); }
 }
 body::after {
     content: "";
@@ -861,6 +856,7 @@ body.selecting .bulk-bar { transform: translateX(-50%) translateY(0); opacity: 1
     display: block;
     filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
 }
+.dock-label { display: none; }
 .dock-tooltip {
     position: absolute;
     bottom: calc(100% + 14px);
@@ -937,6 +933,13 @@ html.light .dock-sep { background: rgba(20, 20, 50, 0.12); }
     main { padding: 22px 22px 130px; }
     .word-grid { grid-template-columns: 1fr; }
     .mascot { width: 80px; height: 75px; bottom: 92px; right: 14px; }
+    .dock { gap: 4px; padding: 7px 8px; bottom: 12px; max-width: calc(100vw - 16px); }
+    .dock-item { width: 48px; height: 56px; flex-direction: column; gap: 1px; }
+    .dock-icon { font-size: 23px; }
+    .dock-label { display: block; color: var(--muted); font-size: 9px; font-weight: 700; line-height: 1; }
+    .dock-item.active .dock-label { color: var(--text); }
+    .dock-sep { margin: 0 2px; height: 28px; }
+    .dock-tooltip { display: none; }
 }
 
 /* ============================================================
@@ -1254,4 +1257,49 @@ nav::after {
     border-color: rgba(168, 85, 247, 0.6);
     color: #fff;
     background: rgba(168, 85, 247, 0.12);
+}
+
+/* Clear first action and faster access to large collections. */
+.page-intro { margin: 8px 0 34px; max-width: 660px; }
+.page-intro .eyebrow {
+    color: var(--cyan);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+.page-intro h1 { font-size: clamp(30px, 5vw, 46px); line-height: 1.15; letter-spacing: -0.04em; margin-bottom: 12px; }
+.page-intro > p:last-of-type { color: var(--muted); max-width: 530px; }
+.intro-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.toolbar form { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 12px; }
+.search-field input {
+    width: min(220px, 100%);
+    height: 40px;
+    padding: 8px 12px;
+    margin: 0;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+}
+.search-submit { height: 40px; align-self: flex-end; }
+.clear-search { align-self: flex-end; padding: 9px 2px; color: var(--cyan); font-size: 13px; text-decoration: none; }
+.clear-search:hover { text-decoration: underline; }
+.save-status { min-height: 1.5em; color: var(--danger); font-size: 13px; }
+button:disabled { cursor: wait; opacity: 0.6; }
+
+.dock-item:focus-visible, .flashcard:focus-visible, .mascot:focus-visible,
+.card-check:focus-visible + .card-check-box, a:focus-visible, button:focus-visible {
+    outline: 3px solid var(--cyan);
+    outline-offset: 3px;
+}
+.dock-item:focus-visible .dock-tooltip { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+.mascot:focus-visible { border-radius: 16px; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    .word-card, .group-card, .list-row, .form-wrap, .runner { opacity: 1 !important; }
 }

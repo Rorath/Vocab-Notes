@@ -29,6 +29,12 @@ document.addEventListener("DOMContentLoaded", () => {
             if (m._dragged) { m._dragged = false; return; } // ignore the click that ends a drag
             mascotCheer();
         });
+        m.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                mascotCheer();
+            }
+        });
         // greet on arrival
         setTimeout(() => mascotSay("Hi! I'm Cappy 👋", 2600), 700);
     }
@@ -56,19 +62,14 @@ document.addEventListener("DOMContentLoaded", () => {
         items.forEach((item) => item.style.setProperty("--scale", 1));
     });
 
-    // Bounce on click; delay navigation so the animation is visible
+    // Keep navigation immediate; motion should never delay opening a page.
     items.forEach((item) => {
-        item.addEventListener("click", (e) => {
+        item.addEventListener("click", () => {
             const icon = item.querySelector(".dock-icon");
             if (icon) {
                 icon.classList.remove("bounce");
                 void icon.offsetWidth; // restart animation
                 icon.classList.add("bounce");
-            }
-            const href = item.getAttribute("href");
-            if (href) {
-                e.preventDefault();
-                setTimeout(() => { window.location.href = href; }, 470);
             }
         });
     });
@@ -85,6 +86,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const tip = document.getElementById("theme-tooltip");
         if (icon) icon.textContent = isLight ? "☀️" : "🌙";
         if (tip) tip.textContent = isLight ? "Dark mode" : "Light mode";
+        btn.setAttribute("aria-label", isLight ? "Dark mode" : "Light mode");
+        btn.setAttribute("aria-pressed", String(isLight));
     }
     refresh();
 
@@ -102,6 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const wrap = m.querySelector(".capy-wrap");
     const margin = 8;
     const SPEED = 3.1;      // max px per frame — bump for faster flight
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     const size = { w: m.offsetWidth || 70, h: m.offsetHeight || 66 };
     let x = window.innerWidth - size.w - 28;
@@ -118,6 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const TRAIL_COLORS = ["#a855f7", "#22d3ee", "#ff9d6b", "#f472b6", "#34d399"];
     let trailX = x, trailY = y, colorI = 0;
     function spawnTrail() {
+        if (reducedMotion.matches) return;
         const cx = x + size.w / 2, cy = y + size.h / 2;
         // only drop a pixel once we've moved far enough (keeps the trail even)
         if (Math.hypot(cx - trailX, cy - trailY) < 14) return;
@@ -137,6 +142,8 @@ document.addEventListener("DOMContentLoaded", () => {
     // Pause so it's easy to click / pet
     m.addEventListener("mouseenter", () => { if (!dragging) paused = true; });
     m.addEventListener("mouseleave", () => { if (!dragging) paused = false; });
+    m.addEventListener("focus", () => { paused = true; });
+    m.addEventListener("blur", () => { paused = false; });
 
     // ---- Drag Cappy with the cursor (then "throw" him back into flight) ----
     let grabDX = 0, grabDY = 0;          // pointer offset within the sprite
@@ -200,7 +207,18 @@ document.addEventListener("DOMContentLoaded", () => {
     m.addEventListener("pointerup", endDrag);
     m.addEventListener("pointercancel", endDrag);
 
-    function tick() {
+    let frameId = null;
+    let lastStep = 0;
+    function schedule() {
+        if (frameId === null && !document.hidden && !reducedMotion.matches) {
+            frameId = requestAnimationFrame(tick);
+        }
+    }
+    function tick(time) {
+        frameId = null;
+        if (document.hidden || reducedMotion.matches) return;
+        if (time - lastStep < 32) { schedule(); return; }
+        lastStep = time;
         if (!paused && !dragging) {
             // gentle random steering => free, wandering flight
             vx += (Math.random() - 0.5) * 0.5;
@@ -227,15 +245,25 @@ document.addEventListener("DOMContentLoaded", () => {
             if (wrap) wrap.style.setProperty("--dir", vx > 0 ? -1 : 1);
             spawnTrail();
         }
-        requestAnimationFrame(tick);
+        schedule();
     }
-    requestAnimationFrame(tick);
+    document.addEventListener("visibilitychange", schedule);
+    reducedMotion.addEventListener("change", schedule);
+    window.addEventListener("resize", () => {
+        clamp();
+        m.style.left = x + "px";
+        m.style.top = y + "px";
+    });
+    schedule();
 });
 
 // ---------- Confetti ----------
 function launchConfetti() {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const colors = ["#a855f7", "#22d3ee", "#ff9d6b", "#cc785c", "#f472b6", "#34d399"];
-    const count = 90;
+    const count = 48;
+    const fragment = document.createDocumentFragment();
+    const pieces = [];
     for (let i = 0; i < count; i++) {
         const piece = document.createElement("div");
         piece.className = "confetti-piece";
@@ -243,9 +271,11 @@ function launchConfetti() {
         piece.style.background = colors[Math.floor(Math.random() * colors.length)];
         piece.style.animationDelay = Math.random() * 0.25 + "s";
         piece.style.animationDuration = (2 + Math.random() * 1.6) + "s";
-        document.body.appendChild(piece);
-        setTimeout(() => piece.remove(), 4200);
+        fragment.appendChild(piece);
+        pieces.push(piece);
     }
+    document.body.appendChild(fragment);
+    setTimeout(() => pieces.forEach((piece) => piece.remove()), 4200);
 }
 
 // ---------- Flashcard learning mode ----------
@@ -271,6 +301,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const chineseBlock = document.getElementById("chinese-block");
     const currentIndexEl = document.getElementById("current-index");
     const totalEl = document.getElementById("total");
+    const saveStatus = document.getElementById("save-status");
 
     // Show the words that were pulled out of the deck (no definition yet).
     const asideEl = document.getElementById("set-aside");
@@ -306,33 +337,26 @@ document.addEventListener("DOMContentLoaded", () => {
     function render() {
         const w = deck[index];
         card.classList.remove("flipped");
-        setTimeout(() => {
-            wordEl.textContent = w.word;
-            const defs = w.english_defs || [];
-            if (defs.length) {
-                englishEl.textContent = defs.join("\n");
-                englishBlock.style.display = "block";
-            } else {
-                englishBlock.style.display = "none";
-            }
-            if (w.chinese_def) {
-                chineseEl.textContent = w.chinese_def;
-                chineseBlock.style.display = "block";
-            } else {
-                chineseBlock.style.display = "none";
-            }
-            const examples = w.examples || [];
-            if (examples.length) {
-                sentenceEl.textContent = examples.join("\n");
-                sentenceBlock.style.display = "block";
-            } else {
-                sentenceBlock.style.display = "none";
-            }
-            currentIndexEl.textContent = index + 1;
-        }, card.classList.contains("flipped") ? 350 : 0);
+        card.setAttribute("aria-pressed", "false");
+        card.setAttribute("aria-label", "Reveal definition for " + w.word);
+        wordEl.textContent = w.word;
+        const defs = w.english_defs || [];
+        englishEl.textContent = defs.join("\n");
+        englishBlock.style.display = defs.length ? "block" : "none";
+        chineseEl.textContent = w.chinese_def || "";
+        chineseBlock.style.display = w.chinese_def ? "block" : "none";
+        const examples = w.examples || [];
+        sentenceEl.textContent = examples.join("\n");
+        sentenceBlock.style.display = examples.length ? "block" : "none";
+        currentIndexEl.textContent = index + 1;
     }
 
-    card.addEventListener("click", () => card.classList.toggle("flipped"));
+    function flipCard() {
+        const flipped = card.classList.toggle("flipped");
+        card.setAttribute("aria-pressed", String(flipped));
+        card.setAttribute("aria-label", (flipped ? "Hide" : "Reveal") + " definition for " + deck[index].word);
+    }
+    card.addEventListener("click", flipCard);
 
     // ---- Weighted selection: less-familiar words surface more often --------
     const famOf = (w) => (typeof w.familiarity === "number" ? w.familiarity : 0);
@@ -361,22 +385,46 @@ document.addEventListener("DOMContentLoaded", () => {
     function advance() { goTo(weightedIndex(index)); }
 
     // Record how an answer went and refresh the daily-goal bar from the reply.
-    function postResult(known) {
+    let answering = false;
+    const knownBtn = document.getElementById("known-btn");
+    const idkBtn = document.getElementById("idk-btn");
+    const answerControls = [knownBtn, idkBtn, document.getElementById("next-btn"), document.getElementById("prev-btn"), document.getElementById("shuffle-btn")];
+
+    async function postResult(known) {
+        if (answering) return;
+        answering = true;
+        answerControls.forEach((button) => { button.disabled = true; });
+        saveStatus.textContent = "Saving answer…";
         const w = deck[index];
-        w.familiarity = famOf(w) + (known ? 1 : -1);  // reflect it locally at once
-        fetch("/api/result", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ id: w.id, known: known }),
-        })
-            .then((r) => (r.ok ? r.json() : null))
-            .then((data) => {
-                if (!data) return;
-                DAILY.today = data.today;
-                DAILY.goal = data.goal;
-                renderGoal();
-            })
-            .catch(() => {});
+        try {
+            const response = await fetch("/api/result", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: w.id, known }),
+            });
+            if (!response.ok) throw new Error("Save failed");
+            const data = await response.json();
+            w.familiarity = data.familiarity;
+            DAILY.today = data.today;
+            DAILY.goal = data.goal;
+            renderGoal();
+            saveStatus.textContent = "";
+            if (known) {
+                launchConfetti();
+                mascotCheer();
+                if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+                    await new Promise((resolve) => setTimeout(resolve, 450));
+                }
+            } else {
+                mascotSay("No worries — I'll bring this one back around.");
+            }
+            advance();
+        } catch (_) {
+            saveStatus.textContent = "Couldn't save your answer. Please try again.";
+        } finally {
+            answering = false;
+            answerControls.forEach((button) => { button.disabled = false; });
+        }
     }
 
     document.getElementById("next-btn").addEventListener("click", advance);
@@ -396,30 +444,25 @@ document.addEventListener("DOMContentLoaded", () => {
         render();
     });
 
-    const knownBtn = document.getElementById("known-btn");
     if (knownBtn) {
-        knownBtn.addEventListener("click", () => {
-            postResult(true);
-            launchConfetti();
-            mascotCheer();
-            setTimeout(advance, 450);
-        });
+        knownBtn.addEventListener("click", () => postResult(true));
     }
 
-    const idkBtn = document.getElementById("idk-btn");
     if (idkBtn) {
-        idkBtn.addEventListener("click", () => {
-            postResult(false);
-            mascotSay("No worries — I'll bring this one back around.");
-            advance();
-        });
+        idkBtn.addEventListener("click", () => postResult(false));
     }
 
     // Keyboard shortcuts
     document.addEventListener("keydown", (e) => {
+        if (e.target === card && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            flipCard();
+            return;
+        }
+        if (e.target.closest("input, textarea, select, button, a, [role=button], [contenteditable]")) return;
         if (e.key === "ArrowRight") document.getElementById("next-btn").click();
         else if (e.key === "ArrowLeft") document.getElementById("prev-btn").click();
-        else if (e.key === " ") { e.preventDefault(); card.classList.toggle("flipped"); }
+        else if (e.key === " ") { e.preventDefault(); flipCard(); }
         else if (e.key === "Enter" && knownBtn) knownBtn.click();
         else if ((e.key === "x" || e.key === "X") && idkBtn) idkBtn.click();
     });
@@ -440,14 +483,14 @@ document.addEventListener("DOMContentLoaded", () => {
             goalFill.style.width = pct + "%";
             goalWrap.classList.toggle("goal-done", today >= goal);
             goalText.textContent = today >= goal
-                ? `🎉 Daily goal reached — ${today}/${goal} today`
-                : `${today} / ${goal} words today`;
+                ? `🎉 Daily goal reached — ${today}/${goal} reviews today`
+                : `${today} / ${goal} reviews today`;
             goalEdit.textContent = "Edit";
         } else {
             goalFill.style.width = "0%";
             goalWrap.classList.remove("goal-done");
             goalText.textContent = today
-                ? `${today} studied today · no goal set`
+                ? `${today} reviews today · no goal set`
                 : "No daily goal set";
             goalEdit.textContent = "Set daily goal";
         }
@@ -457,19 +500,22 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!goalInput || goalInput.hidden) return;
         const val = Math.max(0, parseInt(goalInput.value, 10) || 0);
         goalInput.hidden = true;
+        saveStatus.textContent = "";
         fetch("/api/goal", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ goal: val }),
         })
-            .then((r) => (r.ok ? r.json() : null))
+            .then((r) => {
+                if (!r.ok) throw new Error("Save failed");
+                return r.json();
+            })
             .then((data) => {
-                if (!data) return;
                 DAILY.goal = data.goal;
                 DAILY.today = data.today;
                 renderGoal();
             })
-            .catch(() => {});
+            .catch(() => { saveStatus.textContent = "Couldn't save your goal. Please try again."; });
     }
 
     if (goalEdit && goalInput) {
@@ -490,6 +536,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // ---- Word cards: cross-fade through multiple examples every 10s ----
 document.addEventListener("DOMContentLoaded", () => {
+    const rotators = [];
     document.querySelectorAll(".example-rotator.is-rotating").forEach((rotator) => {
         const stack = rotator.querySelector(".example-stack");
         const items = [...rotator.querySelectorAll(".example-item")];
@@ -499,9 +546,7 @@ document.addEventListener("DOMContentLoaded", () => {
         let i = 0;
         const fit = () => { stack.style.height = items[i].offsetHeight + "px"; };
         fit();
-        window.addEventListener("resize", fit);
-
-        setInterval(() => {
+        rotators.push({ fit, advance: () => {
             const prev = i;
             i = (i + 1) % items.length;
             items[prev].classList.remove("active");
@@ -511,8 +556,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 dots[i].classList.add("active");
             }
             stack.style.height = items[i].offsetHeight + "px";
-        }, 10000);
+        }});
     });
+    if (!rotators.length) return;
+    window.addEventListener("resize", () => rotators.forEach(({ fit }) => fit()));
+    setInterval(() => {
+        if (document.hidden || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        rotators.forEach(({ advance }) => advance());
+    }, 10000);
 });
 
 // ---- Word grid: multi-select words and move them into one group ----

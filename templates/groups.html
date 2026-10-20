@@ -28,6 +28,17 @@
     </div>
 
     <main>
+        <header class="page-intro">
+            <p class="eyebrow">Your vocabulary space</p>
+            <h1>Make every word stick.</h1>
+            <p>Pick a group to browse, or keep your momentum going with a quick review.</p>
+            {% if summary.total %}
+            <div class="intro-actions">
+                <a href="{{ url_for('learn') }}" class="btn-primary">Start studying →</a>
+                <a href="{{ url_for('add') }}" class="btn-secondary">Add a word</a>
+            </div>
+            {% endif %}
+        </header>
         {% if summary.total %}
             <p class="word-count">{{ summary.total }} word{% if summary.total != 1 %}s{% endif %} · {{ summary.groups|length }} group{% if summary.groups|length != 1 %}s{% endif %}</p>
             <div class="group-grid">
@@ -37,21 +48,21 @@
                     <span class="group-count">{{ summary.total }} word{% if summary.total != 1 %}s{% endif %}</span>
                 </a>
                 {% for g in summary.groups %}
-                <a class="group-card" href="{{ url_for('words', category=g.name) }}" style="animation-delay: {{ (loop.index) * 0.06 }}s">
+                <a class="group-card" href="{{ url_for('words', category=g.name) }}" style="animation-delay: {{ [loop.index * 0.06, 0.36]|min }}s">
                     <div class="group-icon">🗂️</div>
                     <h2>{{ g.name }}</h2>
                     <span class="group-count">{{ g.count }} word{% if g.count != 1 %}s{% endif %}</span>
                 </a>
                 {% endfor %}
                 {% if summary.ungrouped %}
-                <a class="group-card ungrouped-card" href="{{ url_for('words', ungrouped=1) }}" style="animation-delay: {{ (summary.groups|length + 1) * 0.06 }}s">
+                <a class="group-card ungrouped-card" href="{{ url_for('words', ungrouped=1) }}" style="animation-delay: {{ [(summary.groups|length + 1) * 0.06, 0.36]|min }}s">
                     <div class="group-icon">🏷️</div>
                     <h2>Ungrouped</h2>
                     <span class="group-count">{{ summary.ungrouped }} word{% if summary.ungrouped != 1 %}s{% endif %}</span>
                 </a>
                 {% endif %}
                 {% if summary.unfamiliar %}
-                <a class="group-card review-card" href="{{ url_for('words', review=1) }}" style="animation-delay: {{ (summary.groups|length + 2) * 0.06 }}s">
+                <a class="group-card review-card" href="{{ url_for('words', review=1) }}" style="animation-delay: {{ [(summary.groups|length + 2) * 0.06, 0.36]|min }}s">
                     <div class="group-icon">🔥</div>
                     <h2>Needs review</h2>
                     <span class="group-count">{{ summary.unfamiliar }} word{% if summary.unfamiliar != 1 %}s{% endif %}</span>

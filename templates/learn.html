@@ -39,7 +39,7 @@
                     <span id="goal-text"></span>
                     <span class="goal-edit-wrap">
                         <input type="number" min="0" id="goal-input" class="goal-input" hidden
-                               placeholder="0" aria-label="Words per day goal">
+                               placeholder="0" aria-label="Reviews per day goal">
                         <button type="button" id="goal-edit" class="goal-edit-btn">Set daily goal</button>
                     </span>
                 </div>
@@ -50,7 +50,7 @@
                 <p class="hint-inline">Add an English or Chinese definition to start studying them.</p>
             </div>
 
-            <div class="flashcard" id="flashcard">
+            <div class="flashcard" id="flashcard" role="button" tabindex="0" aria-label="Reveal definition" aria-pressed="false">
                 <div class="flashcard-inner">
                     <div class="flashcard-front">
                         <p class="hint">Click to reveal</p>
@@ -83,6 +83,7 @@
                     <button id="shuffle-btn" class="btn-nav">⇄ Shuffle</button>
                     <button id="next-btn" class="btn-nav">Next →</button>
                 </div>
+                <p class="save-status" id="save-status" role="status" aria-live="polite"></p>
             </div>
 
             <aside class="set-aside" id="set-aside" hidden>
@@ -93,7 +94,7 @@
         </div>
 
         <script>
-            const WORDS = {{ words_json|safe }};
+            const WORDS = {{ word_payload|tojson }};
             const DAILY = { today: {{ today_count }}, goal: {{ daily_goal }} };
         </script>
         {% else %}
